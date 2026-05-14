@@ -9,6 +9,7 @@ const estudiantesRoutes = require('./modules/estudiantes/estudiantes.routes');
 const acudientesRoutes = require('./modules/acudientes/acudientes.routes');
 const asistenciasRoutes = require('./modules/asistencias/asistencias.routes');
 const observacionesRoutes = require('./modules/observaciones/observaciones.routes');
+const reportesRoutes = require('./modules/reportes/reportes.routes');
 
 const app = express();
 
@@ -29,5 +30,6 @@ app.use('/api/estudiantes', estudiantesRoutes);
 app.use('/api/acudientes', acudientesRoutes);
 app.use('/api/asistencias', asistenciasRoutes);
 app.use('/api/observaciones', observacionesRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 module.exports = app;
