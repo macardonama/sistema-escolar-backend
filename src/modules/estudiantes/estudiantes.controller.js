@@ -1,4 +1,5 @@
 const estudiantesService = require('./estudiantes.service');
+const { puedeVerEstudiante } = require('../../utils/permisos');
 
 const crearEstudiante = async (req, res) => {
   try {
@@ -33,6 +34,14 @@ const listarEstudiantes = async (req, res) => {
 
 const obtenerEstudiantePorId = async (req, res) => {
   try {
+    const tienePermiso = await puedeVerEstudiante(req.usuario, req.params.id);
+
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar este estudiante',
+      });
+    }
+
     const estudiante = await estudiantesService.obtenerEstudiantePorId(req.params.id);
 
     res.json({
@@ -45,7 +54,6 @@ const obtenerEstudiantePorId = async (req, res) => {
     });
   }
 };
-
 const actualizarEstudiante = async (req, res) => {
   try {
     const estudiante = await estudiantesService.actualizarEstudiante(req.params.id, req.body);
