@@ -73,6 +73,36 @@ Puede consultar información asociada a sus acudidos en rutas habilitadas.
 
 ---
 
+## Seguridad y permisos por pertenencia
+
+Además de validar el rol del usuario mediante JWT, el sistema incluye validaciones de pertenencia para proteger información sensible.
+
+Actualmente se valida que:
+
+- Un usuario con rol `ADMINISTRATIVO` pueda consultar toda la información.
+- Un usuario con rol `DOCENTE` solo pueda consultar información de estudiantes pertenecientes a grupos donde sea director.
+- Un usuario con rol `ESTUDIANTE` solo pueda consultar su propio registro.
+- Un usuario con rol `ACUDIENTE` solo pueda consultar estudiantes asociados como acudidos.
+
+Estas validaciones aplican actualmente en:
+
+```txt
+GET /api/estudiantes/:id
+GET /api/reportes/asistencia/estudiante/:estudianteId
+GET /api/reportes/observaciones/estudiante/:estudianteId
+```
+
+Para que estas validaciones funcionen correctamente, los registros deben estar asociados así:
+
+```txt
+Usuario con rol ESTUDIANTE → Estudiante.usuarioId
+Usuario con rol ACUDIENTE → Acudiente.usuarioId
+Acudiente ↔ Estudiante mediante EstudianteAcudiente
+Docente ↔ Grupo mediante Grupo.directorDocenteId
+```
+
+---
+
 ## Variables de entorno
 
 Crear un archivo `.env` en la raíz del proyecto con la siguiente estructura:
@@ -1049,10 +1079,10 @@ git push origin main
 
 - Crear colección organizada en Postman.
 - Agregar validaciones más robustas.
-- Restringir acceso real por usuario, no solo por rol.
-- Permitir que el docente vea únicamente sus grupos.
-- Permitir que el acudiente vea únicamente sus acudidos.
-- Permitir que el estudiante vea únicamente su información.
+- Extender las validaciones de pertenencia a más rutas sensibles.
+- Permitir que el docente vea únicamente sus grupos en listados generales.
+- Permitir que el acudiente vea únicamente sus acudidos en listados y reportes.
+- Permitir que el estudiante vea únicamente su información en todos los módulos.
 - Crear seeds de datos iniciales.
 - Agregar pruebas automatizadas.
 - Preparar despliegue en Render o Railway.
