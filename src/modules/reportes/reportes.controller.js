@@ -1,4 +1,5 @@
 const reportesService = require('./reportes.service');
+const { puedeVerEstudiante } = require('../../utils/permisos');
 
 const reporteAsistenciaPorGrupo = async (req, res) => {
   try {
@@ -20,6 +21,17 @@ const reporteAsistenciaPorGrupo = async (req, res) => {
 
 const reporteAsistenciaPorEstudiante = async (req, res) => {
   try {
+    const tienePermiso = await puedeVerEstudiante(
+      req.usuario,
+      req.params.estudianteId
+    );
+
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar el reporte de este estudiante',
+      });
+    }
+
     const reporte = await reportesService.reporteAsistenciaPorEstudiante(
       req.params.estudianteId,
       req.query
@@ -38,6 +50,17 @@ const reporteAsistenciaPorEstudiante = async (req, res) => {
 
 const reporteObservacionesPorEstudiante = async (req, res) => {
   try {
+    const tienePermiso = await puedeVerEstudiante(
+      req.usuario,
+      req.params.estudianteId
+    );
+
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar las observaciones de este estudiante',
+      });
+    }
+
     const reporte = await reportesService.reporteObservacionesPorEstudiante(
       req.params.estudianteId,
       req.query
