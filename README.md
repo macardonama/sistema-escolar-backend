@@ -90,6 +90,12 @@ Estas validaciones aplican actualmente en:
 GET /api/estudiantes/:id
 GET /api/reportes/asistencia/estudiante/:estudianteId
 GET /api/reportes/observaciones/estudiante/:estudianteId
+GET /api/estudiantes/:id
+GET /api/reportes/asistencia/estudiante/:estudianteId
+GET /api/reportes/observaciones/estudiante/:estudianteId
+GET /api/asistencias?estudianteId=...
+GET /api/observaciones?estudianteId=...
+GET /api/acudientes/:id
 ```
 
 Para que estas validaciones funcionen correctamente, los registros deben estar asociados así:
