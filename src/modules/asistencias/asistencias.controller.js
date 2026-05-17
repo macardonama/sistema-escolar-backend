@@ -1,4 +1,5 @@
 const asistenciasService = require('./asistencias.service');
+const { puedeVerEstudiante } = require('../../utils/permisos');
 
 const registrarAsistencia = async (req, res) => {
   try {
@@ -17,6 +18,18 @@ const registrarAsistencia = async (req, res) => {
 
 const listarAsistencias = async (req, res) => {
   try {
+    const { estudianteId } = req.query;
+
+    if (estudianteId) {
+      const tienePermiso = await puedeVerEstudiante(req.usuario, estudianteId);
+
+      if (!tienePermiso) {
+        return res.status(403).json({
+          mensaje: 'No tienes permiso para consultar las asistencias de este estudiante',
+        });
+      }
+    }
+
     const asistencias = await asistenciasService.listarAsistencias(req.query);
 
     res.json({
@@ -30,7 +43,6 @@ const listarAsistencias = async (req, res) => {
     });
   }
 };
-
 const obtenerAsistenciaPorId = async (req, res) => {
   try {
     const asistencia = await asistenciasService.obtenerAsistenciaPorId(req.params.id);

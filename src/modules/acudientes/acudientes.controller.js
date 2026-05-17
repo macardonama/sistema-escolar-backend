@@ -1,4 +1,5 @@
 const acudientesService = require('./acudientes.service');
+const { puedeVerAcudiente } = require('../../utils/permisos');
 
 const crearAcudiente = async (req, res) => {
   try {
@@ -33,6 +34,14 @@ const listarAcudientes = async (req, res) => {
 
 const obtenerAcudientePorId = async (req, res) => {
   try {
+    const tienePermiso = await puedeVerAcudiente(req.usuario, req.params.id);
+
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar este acudiente',
+      });
+    }
+
     const acudiente = await acudientesService.obtenerAcudientePorId(req.params.id);
 
     res.json({

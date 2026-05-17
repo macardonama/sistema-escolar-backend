@@ -1,4 +1,5 @@
 const observacionesService = require('./observaciones.service');
+const { puedeVerEstudiante } = require('../../utils/permisos');
 
 const crearObservacion = async (req, res) => {
   try {
@@ -17,6 +18,18 @@ const crearObservacion = async (req, res) => {
 
 const listarObservaciones = async (req, res) => {
   try {
+    const { estudianteId } = req.query;
+
+    if (estudianteId) {
+      const tienePermiso = await puedeVerEstudiante(req.usuario, estudianteId);
+
+      if (!tienePermiso) {
+        return res.status(403).json({
+          mensaje: 'No tienes permiso para consultar las observaciones de este estudiante',
+        });
+      }
+    }
+
     const observaciones = await observacionesService.listarObservaciones(req.query);
 
     res.json({

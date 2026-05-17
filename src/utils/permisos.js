@@ -66,9 +66,6 @@ const docentePuedeVerEstudiante = async (usuarioId, estudianteId) => {
     where: {
       id: Number(estudianteId),
     },
-    include: {
-      grupo: true,
-    },
   });
 
   if (!estudiante || !estudiante.grupoId) {
@@ -105,9 +102,28 @@ const puedeVerEstudiante = async (usuario, estudianteId) => {
   return false;
 };
 
+const puedeVerAcudiente = async (usuario, acudienteId) => {
+  if (esAdministrativo(usuario)) {
+    return true;
+  }
+
+  if (usuario.rol === 'ACUDIENTE') {
+    const acudiente = await obtenerAcudientePorUsuario(usuario.id);
+
+    if (!acudiente) {
+      return false;
+    }
+
+    return acudiente.id === Number(acudienteId);
+  }
+
+  return false;
+};
+
 module.exports = {
   esAdministrativo,
   puedeVerEstudiante,
+  puedeVerAcudiente,
   obtenerDocentePorUsuario,
   obtenerEstudiantePorUsuario,
   obtenerAcudientePorUsuario,
