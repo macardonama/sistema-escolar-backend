@@ -16,4 +16,18 @@ export class AuthService {
       password
     });
   }
+
+  obtenerPerfil() {
+
+    const token = localStorage.getItem('token');
+
+    return this.http.get(
+      `${this.apiUrl}/api/auth/perfil`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+  }
 }
