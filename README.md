@@ -90,9 +90,6 @@ Estas validaciones aplican actualmente en:
 GET /api/estudiantes/:id
 GET /api/reportes/asistencia/estudiante/:estudianteId
 GET /api/reportes/observaciones/estudiante/:estudianteId
-GET /api/estudiantes/:id
-GET /api/reportes/asistencia/estudiante/:estudianteId
-GET /api/reportes/observaciones/estudiante/:estudianteId
 GET /api/asistencias?estudianteId=...
 GET /api/observaciones?estudianteId=...
 GET /api/acudientes/:id
@@ -119,7 +116,17 @@ PORT=3000
 JWT_SECRET="clave_super_secreta_sistema_escolar"
 ```
 
+Para conectarse a la base de datos en la nube alojada en Neon, la variable `DATABASE_URL` debe usar la cadena de conexión entregada por Neon:
+
+```env
+DATABASE_URL="postgresql://usuario:password@host/database?sslmode=require"
+PORT=3000
+JWT_SECRET="clave_super_secreta_sistema_escolar"
+```
+
 > Importante: el archivo `.env` no debe subirse a GitHub. Debe estar incluido en `.gitignore`.
+
+El repositorio incluye un archivo `.env.example` como referencia para configurar las variables de entorno sin exponer credenciales reales.
 
 ---
 
@@ -145,6 +152,97 @@ http://localhost:3000
 
 ---
 
+## Despliegue
+
+El backend puede ejecutarse de forma local o desde la URL pública desplegada en Render.
+
+### URL local
+
+```txt
+http://localhost:3000
+```
+
+### URL pública
+
+```txt
+https://sistema-escolar-backend-wlfg.onrender.com
+```
+
+
+---
+
+## Base de datos en la nube
+
+El proyecto utiliza PostgreSQL. Para producción/despliegue se está usando una base de datos PostgreSQL alojada en Neon.
+
+La conexión se configura mediante la variable de entorno:
+
+```env
+DATABASE_URL="postgresql://usuario:password@host/database?sslmode=require"
+```
+
+En local, esta variable se define en el archivo `.env`.
+
+En Render, esta variable se configura desde el panel de **Environment Variables**.
+
+---
+
+## Variables de entorno en Render
+
+Para desplegar correctamente el backend en Render, se deben configurar estas variables:
+
+```txt
+DATABASE_URL
+JWT_SECRET
+PORT
+```
+
+Ejemplo:
+
+```txt
+DATABASE_URL = cadena de conexión de Neon
+JWT_SECRET = clave segura para JWT
+PORT = 3000
+```
+
+---
+
+## Comandos usados en Render
+
+### Build Command
+
+```bash
+npm install && npx prisma generate && npx prisma migrate deploy
+```
+
+### Start Command
+
+```bash
+npm start
+```
+
+---
+
+## Usuario administrativo inicial
+
+El proyecto incluye un seed para crear un usuario administrativo inicial.
+
+```bash
+npm run seed
+```
+
+Usuario creado por defecto:
+
+```txt
+Correo: mateo@test.com
+Contraseña: 123456
+Rol: ADMINISTRATIVO
+```
+
+> En producción se recomienda cambiar esta contraseña después del primer inicio de sesión.
+
+---
+
 ## Prisma
 
 ### Generar Prisma Client
@@ -153,10 +251,22 @@ http://localhost:3000
 npx prisma generate
 ```
 
-### Ejecutar migraciones
+### Ejecutar migraciones en desarrollo
 
 ```bash
 npx prisma migrate dev --name init
+```
+
+### Ejecutar migraciones en producción/Render
+
+```bash
+npx prisma migrate deploy
+```
+
+### Ejecutar seed inicial
+
+```bash
+npm run seed
 ```
 
 ### Abrir Prisma Studio
@@ -169,10 +279,14 @@ npx prisma studio
 
 # Endpoints
 
-La URL base local es:
+La URL base puede ser local o pública:
 
 ```txt
+Local:
 http://localhost:3000
+
+Render:
+https://TU_URL_DE_RENDER
 ```
 
 Para las rutas protegidas se debe enviar el token JWT en el header:
@@ -1044,38 +1158,41 @@ fechaFin
 
 ## Flujo recomendado de prueba
 
-1. Crear usuario administrativo.
-2. Iniciar sesión y copiar token.
-3. Crear usuario docente.
-4. Crear docente asociado al usuario docente.
-5. Crear grupo.
-6. Crear estudiante asociado al grupo.
-7. Crear acudiente.
-8. Asociar estudiante con acudiente.
-9. Registrar asistencia.
-10. Registrar observación general.
-11. Registrar observación individual.
-12. Consultar reportes básicos.
+1. Ejecutar migraciones.
+2. Ejecutar seed inicial para crear usuario administrativo.
+3. Iniciar sesión y copiar token.
+4. Crear usuario docente.
+5. Crear docente asociado al usuario docente.
+6. Crear grupo.
+7. Crear estudiante asociado al grupo.
+8. Crear acudiente.
+9. Asociar estudiante con acudiente.
+10. Registrar asistencia.
+11. Registrar observación general.
+12. Registrar observación individual.
+13. Consultar reportes básicos.
+14. Probar permisos por pertenencia con usuarios `ESTUDIANTE` y `ACUDIENTE`.
+15. Probar nuevamente usando la URL pública de Render.
 
 ---
 
 ## Comandos Git sugeridos
 
-### Guardar cambios en rama de reportes
+### Guardar cambios
 
 ```bash
 git status
 git add .
-git commit -m "Agregar modulo de reportes basicos"
-git push -u origin feature/reportes-basicos
+git commit -m "Descripcion clara del cambio realizado"
+git push
 ```
 
-### Fusionar después de probar
+### Fusionar una rama después de probar
 
 ```bash
 git checkout main
 git pull origin main
-git merge feature/reportes-basicos
+git merge nombre-de-la-rama
 git push origin main
 ```
 
@@ -1083,13 +1200,13 @@ git push origin main
 
 ## Pendientes sugeridos
 
-- Crear colección organizada en Postman.
-- Agregar validaciones más robustas.
+- Exportar colección organizada de Postman para compartirla con el equipo frontend.
+- Agregar validaciones más robustas en entradas de datos.
 - Extender las validaciones de pertenencia a más rutas sensibles.
 - Permitir que el docente vea únicamente sus grupos en listados generales.
 - Permitir que el acudiente vea únicamente sus acudidos en listados y reportes.
 - Permitir que el estudiante vea únicamente su información en todos los módulos.
-- Crear seeds de datos iniciales.
+- Cambiar la contraseña del usuario administrativo inicial después del primer acceso en producción.
+- Configurar ambiente de producción definitivo.
 - Agregar pruebas automatizadas.
-- Preparar despliegue en Render o Railway.
 - Construir frontend en Angular.
