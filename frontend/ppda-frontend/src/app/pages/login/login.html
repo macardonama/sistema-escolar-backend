@@ -1,53 +1,99 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
+<div class="min-h-screen flex bg-gray-100">
 
-  <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
+  <!-- PANEL IZQUIERDO -->
 
-    <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">
+  <div class="hidden lg:flex w-1/2 bg-blue-700 text-white flex-col justify-center items-center p-16">
+
+    <img
+      src="/ppda.png"
+      alt="PPDA"
+      class="w-72 mb-8"
+    />
+
+    <h1 class="text-5xl font-bold text-center">
       PPDA
     </h1>
 
-    <p class="text-center text-gray-500 mb-6">
-      Plataforma escolar institucional
+    <p class="mt-6 text-xl text-blue-100 text-center max-w-md leading-relaxed">
+
+      Plataforma institucional para gestión académica,
+      convivencia y seguimiento emocional estudiantil.
+
     </p>
 
-    <form (ngSubmit)="login()">
+  </div>
 
-      <div class="mb-4">
-        <label class="block mb-2 text-sm font-medium">
-          Correo
-        </label>
+  <!-- PANEL DERECHO -->
 
-        <input
-        type="email"
-        class="w-full p-3 border rounded-lg"
-        placeholder="correo@ejemplo.com"
-        [(ngModel)]="email"
-        name="email"
-        >
+  <div class="flex-1 flex justify-center items-center p-8">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-10">
+
+      <div class="flex flex-col items-center mb-8">
+
+        <img
+          src="/ppda1.png"
+          alt="PPDA"
+          class="w-28 mb-4"
+        />
+
+        <h2 class="text-3xl font-bold text-gray-800">
+          Iniciar sesión
+        </h2>
+
+        <p class="text-gray-500 mt-2 text-center">
+          Ingresa con tus credenciales institucionales
+        </p>
+
       </div>
 
-      <div class="mb-6">
-        <label class="block mb-2 text-sm font-medium">
-          Contraseña
-        </label>
-
-        <input
-          type="password"
-          class="w-full p-3 border rounded-lg"
-          placeholder="********"
-          [(ngModel)]="password"
-          name="password"
-        >
-      </div>
-
-      <button
-        type="submit"
-        class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+      <form
+        (ngSubmit)="login()"
+        class="space-y-6"
       >
-        Iniciar sesión
-      </button>
 
-    </form>
+        <div>
+
+          <label class="block mb-2 font-medium text-gray-700">
+            Correo institucional
+          </label>
+
+          <input
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="correo@institucion.edu"
+            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+        </div>
+
+        <div>
+
+          <label class="block mb-2 font-medium text-gray-700">
+            Contraseña
+          </label>
+
+          <input
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="********"
+            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl font-semibold transition"
+        >
+          Ingresar al sistema
+        </button>
+
+      </form>
+
+    </div>
 
   </div>
 
