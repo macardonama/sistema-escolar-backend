@@ -1,0 +1,223 @@
+<div class="flex min-h-screen bg-gray-100">
+
+<div [class.hidden]="!mostrarSidebar">
+
+  <app-sidebar />
+
+</div>
+
+  <div class="flex-1">
+
+    <app-header
+      (toggleSidebarEvent)="toggleSidebar()"
+    />
+
+    <div class="p-10">
+
+      <h1 class="text-4xl font-bold text-blue-600 mb-8">
+        Usuarios
+      </h1>
+
+      <div class="mb-6">
+
+    <button
+        (click)="abrirModal()"
+        class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
+    >
+        + Nuevo usuario
+    </button>
+
+    </div>  
+
+      <div class="bg-white rounded-2xl shadow overflow-hidden">
+
+        <table class="w-full">
+
+          <thead class="bg-blue-600 text-white">
+
+            <tr>
+              <th class="p-4 text-left">Nombre</th>
+              <th class="p-4 text-left">Correo</th>
+              <th class="p-4 text-left">Rol</th>
+              <th class="p-4 text-left">Estado</th>
+              <th class="p-4 text-left">Acciones</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="let usuario of usuarios"
+              class="border-b hover:bg-gray-50"
+            >
+
+              <td class="p-4">
+                {{ usuario.nombre }}
+              </td>
+
+              <td class="p-4">
+                {{ usuario.correo }}
+              </td>
+
+              <td class="p-4">
+                {{ usuario.rol }}
+              </td>
+
+              <td class="p-4">
+
+                <span
+                  class="px-3 py-1 rounded-full text-sm font-semibold"
+                  [class.bg-green-100]="usuario.activo"
+                  [class.text-green-700]="usuario.activo"
+                  [class.bg-red-100]="!usuario.activo"
+                  [class.text-red-700]="!usuario.activo"
+                >
+
+                  {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+
+                </span>
+
+              </td>
+
+              <td class="p-4 flex gap-3">
+
+                <button
+                    class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition"
+                >
+                    Editar
+                </button>
+
+                <button
+                    class="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition"
+                >
+                    Eliminar
+                </button>
+
+            </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      @if (mostrarModal) {
+
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+    <div class="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+
+      <div class="flex justify-between items-center mb-6">
+
+        <h2 class="text-2xl font-bold text-blue-700">
+          Nuevo usuario
+        </h2>
+
+        <button
+          (click)="cerrarModal()"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="space-y-5">
+
+        <div>
+
+          <label class="block mb-2 font-medium">
+            Nombre
+          </label>
+
+          <input
+            type="text"
+            [(ngModel)]="nombre"
+            class="w-full p-4 border rounded-xl"
+          />
+
+        </div>
+
+        <div>
+
+          <label class="block mb-2 font-medium">
+            Correo
+          </label>
+
+          <input
+            type="email"
+            [(ngModel)]="correo"
+            class="w-full p-4 border rounded-xl"
+          />
+
+        </div>
+
+        <div>
+
+          <label class="block mb-2 font-medium">
+            Contraseña
+          </label>
+
+          <input
+            type="password"
+            [(ngModel)]="password"
+            class="w-full p-4 border rounded-xl"
+          />
+
+        </div>
+
+        <div>
+
+          <label class="block mb-2 font-medium">
+            Rol
+          </label>
+
+          <select
+            [(ngModel)]="rol"
+            class="w-full p-4 border rounded-xl"
+          >
+
+            <option value="DOCENTE">
+              DOCENTE
+            </option>
+
+            <option value="ADMINISTRATIVO">
+              ADMINISTRATIVO
+            </option>
+
+            <option value="ESTUDIANTE">
+              ESTUDIANTE
+            </option>
+
+            <option value="ACUDIENTE">
+              ACUDIENTE
+            </option>
+
+          </select>
+
+        </div>
+
+        <button
+        (click)="crearUsuario()"
+        class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl transition"
+        >
+        Crear usuario
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
+
+    </div>
+
+  </div>
+
+</div>

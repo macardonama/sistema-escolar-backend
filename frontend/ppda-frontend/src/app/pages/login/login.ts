@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -15,6 +16,7 @@ export class LoginComponent {
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   email = '';
   password = '';
@@ -30,6 +32,8 @@ export class LoginComponent {
 
         this.errorLogin = false;
 
+        this.cdr.detectChanges();
+
         localStorage.setItem(
           'token',
           response.token
@@ -41,6 +45,7 @@ export class LoginComponent {
       error: () => {
 
         this.errorLogin = true;
+        this.cdr.detectChanges();
       }
     });
 }
