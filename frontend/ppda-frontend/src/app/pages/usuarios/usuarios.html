@@ -27,6 +27,34 @@
         + Nuevo usuario
     </button>
 
+    <select
+  [(ngModel)]="filtroRol"
+  (change)="filtrarUsuarios()"
+  class="border p-3 rounded-xl ml-4"
+>
+
+  <option value="TODOS">
+    Todos
+  </option>
+
+  <option value="ADMINISTRATIVO">
+    Administrativos
+  </option>
+
+  <option value="DOCENTE">
+    Docentes
+  </option>
+
+  <option value="ESTUDIANTE">
+    Estudiantes
+  </option>
+
+  <option value="ACUDIENTE">
+    Acudientes
+  </option>
+
+</select>
+
     </div>  
 
       <div class="bg-white rounded-2xl shadow overflow-hidden">
@@ -49,7 +77,7 @@
           <tbody>
 
             <tr
-              *ngFor="let usuario of usuarios"
+              *ngFor="let usuario of usuariosFiltrados"
               class="border-b hover:bg-gray-50"
             >
 
@@ -81,19 +109,35 @@
 
               </td>
 
-              <td class="p-4 flex gap-3">
+            <td class="p-4 flex gap-3">
+
+            <button
+            (click)="editarUsuario(usuario)"
+            class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
+            >
+            Editar
+            </button>
+
+            @if (usuario.activo) {
 
                 <button
-                    class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition"
+                (click)="desactivarUsuario(usuario.id)"
+                class="bg-red-100 text-red-700 px-4 py-2 rounded-lg"
                 >
-                    Editar
+                Desactivar
                 </button>
 
-                <button
-                    class="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition"
+            }
+
+            @else {
+
+                <span
+                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
                 >
-                    Eliminar
-                </button>
+                Inactivo
+                </span>
+
+            }
 
             </td>
 
@@ -114,7 +158,7 @@
       <div class="flex justify-between items-center mb-6">
 
         <h2 class="text-2xl font-bold text-blue-700">
-          Nuevo usuario
+          {{ modoEdicion ? 'Editar usuario' : 'Nuevo usuario' }}
         </h2>
 
         <button
@@ -202,10 +246,10 @@
         </div>
 
         <button
-        (click)="crearUsuario()"
+        (click)="modoEdicion ? actualizarUsuario() : crearUsuario()"
         class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl transition"
         >
-        Crear usuario
+        {{ modoEdicion ? 'Actualizar usuario' : 'Crear usuario' }}
         </button>
 
       </div>

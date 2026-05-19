@@ -20,6 +20,10 @@ export class UsuariosComponent implements OnInit {
 
   usuarios: any[] = [];
 
+  usuariosFiltrados: any[] = [];
+
+  filtroRol = 'TODOS';
+
   mostrarSidebar = true;
 
   mostrarModal = false;
@@ -29,10 +33,32 @@ export class UsuariosComponent implements OnInit {
   password = '';
   rol = 'DOCENTE';
 
+  modoEdicion = false;
+
+  usuarioEditandoId: number | null = null;
+
 toggleSidebar() {
 
     this.mostrarSidebar =
     !this.mostrarSidebar;
+}
+
+filtrarUsuarios() {
+
+  if (this.filtroRol === 'TODOS') {
+
+    this.usuariosFiltrados =
+      this.usuarios;
+
+    return;
+  }
+
+  this.usuariosFiltrados =
+    this.usuarios.filter(
+
+      usuario =>
+        usuario.rol === this.filtroRol
+    );
 }
 
 abrirModal() {
@@ -45,6 +71,20 @@ cerrarModal() {
   this.mostrarModal = false;
 }
 
+editarUsuario(usuario: any) {
+
+  this.modoEdicion = true;
+
+  this.usuarioEditandoId = usuario.id;
+
+  this.nombre = usuario.nombre;
+  this.correo = usuario.correo;
+  this.rol = usuario.rol;
+
+  this.password = '';
+
+  this.mostrarModal = true;
+}
 crearUsuario() {
 
   console.log('CLICK CREAR');
@@ -75,6 +115,75 @@ crearUsuario() {
     });
 }
 
+actualizarUsuario() {
+
+  if (!this.usuarioEditandoId) return;
+
+  this.usuariosService
+
+    .actualizarUsuario(
+      this.usuarioEditandoId,
+      this.nombre,
+      this.correo,
+      this.rol
+    )
+
+    .subscribe({
+
+      next: () => {
+
+        this.mostrarModal = false;
+
+        this.modoEdicion = false;
+
+        this.ngOnInit();
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
+
+desactivarUsuario(id: number) {
+
+  this.usuariosService
+
+    .desactivarUsuario(id)
+
+    .subscribe({
+
+      next: () => {
+
+        this.usuarios =
+
+          this.usuarios.map(
+
+            usuario => {
+
+              if (usuario.id === id) {
+
+                return {
+
+                  ...usuario,
+
+                  activo: false
+                };
+              }
+
+              return usuario;
+            }
+          );
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
+
   ngOnInit(): void {
 
     this.usuariosService
@@ -86,6 +195,8 @@ crearUsuario() {
           console.log(response);
 
           this.usuarios = response.usuarios;
+          this.usuariosFiltrados =
+          response.usuarios;
           this.cdr.detectChanges();
         },
 

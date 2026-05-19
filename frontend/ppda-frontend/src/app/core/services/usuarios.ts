@@ -51,4 +51,47 @@ export class UsuariosService {
     }
   );
 }
+
+desactivarUsuario(id: number) {
+
+  return this.http.patch(
+
+    `${this.apiUrl}/${id}/desactivar`,
+
+    {},
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
+actualizarUsuario(
+  id: number,
+  nombre: string,
+  correo: string,
+  rol: string
+) {
+
+  return this.http.put(
+
+    `${this.apiUrl}/${id}`,
+
+    {
+      nombre,
+      correo,
+      rol
+    },
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 }
