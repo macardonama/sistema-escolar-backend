@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,4 +9,12 @@ import { RouterLink } from '@angular/router';
 })
 export class SidebarComponent {
 
+  private router = inject(Router);
+
+  cerrarSesion() {
+
+    localStorage.removeItem('token');
+
+    this.router.navigate(['/login']);
+  }
 }

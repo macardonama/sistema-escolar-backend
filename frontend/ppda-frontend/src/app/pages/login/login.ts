@@ -2,12 +2,14 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
+  standalone: true
 })
 export class LoginComponent {
 
@@ -16,23 +18,30 @@ export class LoginComponent {
 
   email = '';
   password = '';
+  errorLogin = false;
 
   login() {
-    this.authService.login(this.email, this.password)
-      .subscribe({
-        next: (response: any) => {
 
-          localStorage.setItem(
-            'token',
-            response.token
-          );
+  this.authService
+    .login(this.email, this.password)
+    .subscribe({
 
-          this.router.navigate(['/dashboard']);
+      next: (response: any) => {
 
-        },
-        error: (error) => {
-          console.error(error);
-        }
-      });
-  }
+        this.errorLogin = false;
+
+        localStorage.setItem(
+          'token',
+          response.token
+        );
+
+        this.router.navigate(['/dashboard']);
+      },
+
+      error: () => {
+
+        this.errorLogin = true;
+      }
+    });
+}
 }

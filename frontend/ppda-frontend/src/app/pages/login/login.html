@@ -84,13 +84,22 @@
 
         </div>
 
+       <div
+         *ngIf="errorLogin"
+         class="bg-red-100 text-red-700 p-4 rounded-xl text-sm"
+        >
+
+            Correo o contraseña incorrectos
+
+        </div>
+
         <button
           type="submit"
           class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl font-semibold transition"
         >
           Ingresar al sistema
         </button>
-
+        
       </form>
 
     </div>
