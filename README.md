@@ -286,7 +286,7 @@ Local:
 http://localhost:3000
 
 Render:
-https://TU_URL_DE_RENDER
+https://sistema-escolar-backend-wlfg.onrender.com
 ```
 
 Para las rutas protegidas se debe enviar el token JWT en el header:
@@ -436,6 +436,30 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 ```
+### Activar usuario
+
+```http
+PATCH /api/usuarios/:id/activar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+Respuesta esperada:
+
+{
+  "mensaje": "Usuario activado correctamente",
+  "usuario": {
+    "id": 3,
+    "nombre": "Agujetas",
+    "correo": "agujetas@test.com",
+    "rol": "ESTUDIANTE",
+    "activo": true
+  }
+}
+
 
 ---
 
@@ -1197,6 +1221,74 @@ git push origin main
 ```
 
 ---
+## Colección Postman
+---
+
+## Colección de Postman
+
+El proyecto cuenta con una colección de Postman organizada por módulos para probar los endpoints del backend.
+
+La colección incluye carpetas para:
+
+```txt
+General
+Auth
+Usuarios
+Grupos
+Docentes
+Estudiantes
+Acudientes
+Asistencias
+Observaciones
+Reportes
+Variables recomendadas en Postman:
+base_url
+token
+usuario_id
+docente_id
+grupo_id
+estudiante_id
+acudiente_id
+asistencia_id
+observacion_id
+La variable base_url puede apuntar al servidor local o al backend desplegado en Render:
+Local:
+http://localhost:3000
+
+Render:
+https://sistema-escolar-backend-wlfg.onrender.com
+Para rutas protegidas, la colección utiliza autenticación tipo Bearer Token:
+Authorization: Bearer {{token}}
+Primero se debe ejecutar el endpoint de login para generar y guardar automáticamente el token en Postman.
+La colección de Postman no se sube al repositorio por seguridad y se comparte directamente con el equipo de frontend.
+
+---
+
+## 4. Actualiza `Pendientes sugeridos`
+
+Reemplaza esta parte:
+
+```md
+- Exportar colección organizada de Postman para compartirla con el equipo frontend.
+- Configurar ambiente de producción definitivo.
+por:
+- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints.
+- Compartir la colección de Postman directamente con el equipo frontend.
+- Validar el ambiente de producción después de cada despliegue en Render.
+Y si quieres dejar los pendientes más limpios, la sección completa podría quedar así:
+## Pendientes sugeridos
+
+- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints.
+- Compartir la colección de Postman directamente con el equipo frontend.
+- Agregar validaciones más robustas en entradas de datos.
+- Extender las validaciones de pertenencia a más rutas sensibles.
+- Permitir que el docente vea únicamente sus grupos en listados generales.
+- Permitir que el acudiente vea únicamente sus acudidos en listados y reportes.
+- Permitir que el estudiante vea únicamente su información en todos los módulos.
+- Cambiar la contraseña del usuario administrativo inicial después del primer acceso en producción.
+- Validar el ambiente de producción después de cada despliegue en Render.
+- Agregar pruebas automatizadas.
+- Construir frontend en Angular.
 
 ## Pendientes sugeridos
 
