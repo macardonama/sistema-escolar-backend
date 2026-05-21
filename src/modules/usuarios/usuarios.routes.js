@@ -40,4 +40,11 @@ router.patch(
   usuariosController.desactivarUsuario
 );
 
+router.patch(
+  '/:id/activar',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO'),
+  usuariosController.activarUsuario
+);
+
 module.exports = router;

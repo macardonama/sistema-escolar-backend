@@ -117,10 +117,31 @@ const desactivarUsuario = async (id) => {
   return usuario;
 };
 
+const activarUsuario = async (id) => {
+  const usuario = await prisma.usuario.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      activo: true,
+    },
+    select: {
+      id: true,
+      nombre: true,
+      correo: true,
+      rol: true,
+      activo: true,
+    },
+  });
+
+  return usuario;
+};
+
 module.exports = {
   crearUsuario,
   listarUsuarios,
   obtenerUsuarioPorId,
   actualizarUsuario,
   desactivarUsuario,
+  activarUsuario
 };

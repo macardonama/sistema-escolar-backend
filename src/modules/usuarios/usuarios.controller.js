@@ -76,10 +76,26 @@ const desactivarUsuario = async (req, res) => {
   }
 };
 
+const activarUsuario = async (req, res) => {
+  try {
+    const usuario = await usuariosService.activarUsuario(req.params.id);
+
+    res.json({
+      mensaje: 'Usuario activado correctamente',
+      usuario,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   crearUsuario,
   listarUsuarios,
   obtenerUsuarioPorId,
   actualizarUsuario,
   desactivarUsuario,
+  activarUsuario,
 };
