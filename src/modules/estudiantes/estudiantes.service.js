@@ -3,9 +3,7 @@ const prisma = require('../../config/prisma');
 const crearEstudiante = async (datos) => {
   const { nombre, documento, grupoId, usuarioId } = datos;
 
-  if (!nombre) {
-    throw new Error('El nombre del estudiante es obligatorio');
-  }
+  let nombreFinal = nombre?.trim();
 
   if (grupoId) {
     const grupo = await prisma.grupo.findUnique({
@@ -29,11 +27,23 @@ const crearEstudiante = async (datos) => {
     if (usuario.rol !== 'ESTUDIANTE') {
       throw new Error('El usuario debe tener rol ESTUDIANTE');
     }
+
+    if (!usuario.activo) {
+      throw new Error('El usuario está desactivado');
+    }
+
+    if (!nombreFinal) {
+      nombreFinal = usuario.nombre;
+    }
+  }
+
+  if (!nombreFinal) {
+    throw new Error('El nombre del estudiante es obligatorio si no se envía usuarioId');
   }
 
   const estudiante = await prisma.estudiante.create({
     data: {
-      nombre,
+      nombre: nombreFinal,
       documento,
       grupoId: grupoId ? Number(grupoId) : null,
       usuarioId: usuarioId ? Number(usuarioId) : null,
@@ -54,7 +64,6 @@ const crearEstudiante = async (datos) => {
 
   return estudiante;
 };
-
 const listarEstudiantes = async () => {
   const estudiantes = await prisma.estudiante.findMany({
     orderBy: {
