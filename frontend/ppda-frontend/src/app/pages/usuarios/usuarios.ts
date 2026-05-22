@@ -136,6 +136,8 @@ actualizarUsuario() {
 
         this.modoEdicion = false;
 
+        this.cargarUsuarios();
+
         this.ngOnInit();
       },
 
@@ -156,25 +158,7 @@ desactivarUsuario(id: number) {
 
       next: () => {
 
-        this.usuarios =
-
-          this.usuarios.map(
-
-            usuario => {
-
-              if (usuario.id === id) {
-
-                return {
-
-                  ...usuario,
-
-                  activo: false
-                };
-              }
-
-              return usuario;
-            }
-          );
+        this.cargarUsuarios();
       },
 
       error: (error) => {
@@ -184,26 +168,54 @@ desactivarUsuario(id: number) {
     });
 }
 
+activarUsuario(id: number) {
+
+  this.usuariosService
+
+    .activarUsuario(id)
+
+    .subscribe({
+
+      next: () => {
+
+        this.cargarUsuarios();
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
   ngOnInit(): void {
-
-    this.usuariosService
-      .listarUsuarios()   
-      .subscribe({
-
-        next: (response: any) => {
-
-          console.log(response);
-
-          this.usuarios = response.usuarios;
-          this.usuariosFiltrados =
-          response.usuarios;
-          this.cdr.detectChanges();
-        },
-
-        error: (error) => {
-
-          console.error(error);
-        }
-      });
+  this.cargarUsuarios();
   }
+
+    cargarUsuarios() {
+
+  this.usuariosService
+
+    .listarUsuarios()
+
+    .subscribe({
+
+      next: (response: any) => {
+
+        console.log(response);
+
+        this.usuarios =
+          response.usuarios;
+
+        this.usuariosFiltrados =
+          response.usuarios;
+
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
 }

@@ -63,6 +63,39 @@
 
           <tbody>
 
+            <tr
+  *ngFor="let docente of docentes"
+  class="border-b"
+>
+
+  <td class="p-4">
+    {{ docente.usuario?.nombre }}
+  </td>
+
+  <td class="p-4">
+    {{ docente.usuario?.correo }}
+  </td>
+
+  <td class="p-4">
+    {{ docente.documento }}
+  </td>
+
+  <td class="p-4">
+    {{ docente.telefono }}
+  </td>
+
+  <td class="p-4">
+
+    <button
+      class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
+    >
+      Editar
+    </button>
+
+  </td>
+
+</tr>
+
           </tbody>
 
         </table>
@@ -104,19 +137,49 @@
           Usuario docente
         </label>
 
-        <select
-          [(ngModel)]="usuarioId"
-          class="w-full border p-4 rounded-xl"
-        >
+       <div class="relative">
 
-          <option
-            *ngFor="let usuario of usuariosDocentes"
-            [value]="usuario.id"
-          >
-            {{ usuario.nombre }}
-          </option>
+  <select
+    [(ngModel)]="usuarioId"
+    class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+  >
 
-        </select>
+    <option [ngValue]="null">
+      Selecciona un docente
+    </option>
+
+    <option
+      *ngFor="let usuario of usuariosDocentes"
+      [value]="usuario.id"
+    >
+      {{ usuario.nombre }}
+    </option>
+
+  </select>
+
+  <div
+    class="absolute inset-y-0 right-4 flex items-center pointer-events-none"
+  >
+
+    <svg
+      class="w-5 h-5 text-gray-500"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+    >
+
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M19 9l-7 7-7-7"
+      />
+
+    </svg>
+
+  </div>
+
+</div>
 
       </div>
 

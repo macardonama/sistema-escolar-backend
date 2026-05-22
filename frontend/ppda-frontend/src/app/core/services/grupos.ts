@@ -25,4 +25,29 @@ export class GruposService {
       }
     );
   }
+
+  crearGrupo(
+    nombre: string,
+    grado: string,
+    directorId: number
+  ) {
+
+    return this.http.post(
+
+      this.apiUrl,
+
+      {
+        nombre,
+        grado,
+        directorId
+      },
+
+      {
+        headers: {
+          Authorization:
+            `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+  }
 }

@@ -131,11 +131,12 @@
 
             @else {
 
-                <span
-                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
-                >
-                Inactivo
-                </span>
+              <button
+            (click)="activarUsuario(usuario.id)"
+            class="bg-green-100 text-green-700 px-4 py-2 rounded-lg"
+            >
+            Activar
+            </button>
 
             }
 

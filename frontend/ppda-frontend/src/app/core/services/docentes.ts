@@ -35,4 +35,19 @@ export class DocentesService {
       }
     );
   }
+
+  listarDocentes() {
+
+  return this.http.get(
+
+    this.apiUrl,
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 }

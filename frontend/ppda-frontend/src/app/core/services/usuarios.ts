@@ -69,6 +69,23 @@ desactivarUsuario(id: number) {
   );
 }
 
+activarUsuario(id: number) {
+
+  return this.http.patch(
+
+    `${this.apiUrl}/${id}/activar`,
+
+    {},
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
 actualizarUsuario(
   id: number,
   nombre: string,

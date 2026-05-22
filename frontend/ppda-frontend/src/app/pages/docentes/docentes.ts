@@ -1,10 +1,19 @@
-import { Component } from '@angular/core';
+import {
+
+  Component,
+
+  inject,
+
+  OnInit,
+
+  ChangeDetectorRef
+
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { HeaderComponent } from '../../shared/header/header';
 
-import { inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { UsuariosService } from '../../core/services/usuarios';
@@ -31,8 +40,12 @@ export class DocentesComponent {
 
   private docentesService =
     inject(DocentesService);
+    private cdr =
+    inject(ChangeDetectorRef);
 
   usuariosDocentes: any[] = [];
+
+  docentes: any[] = [];
 
   mostrarModal = false;
 
@@ -71,6 +84,33 @@ export class DocentesComponent {
         console.error(error);
       }
     });
+
+    this.cargarDocentes();
+}
+
+
+cargarDocentes() {
+
+  this.docentesService
+
+    .listarDocentes()
+
+    .subscribe({
+
+      next: (response: any) => {
+
+        console.log(response);
+
+        this.docentes =
+          response.docentes;
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
 }
 
 crearDocente() {
@@ -90,6 +130,8 @@ crearDocente() {
       next: (response: any) => {
 
         console.log(response);
+
+        this.cargarDocentes();
 
         this.mostrarModal = false;
       },

@@ -20,10 +20,11 @@
           Grupos
         </h1>
 
-        <button
-          class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
+       <button
+        (click)="mostrarModal = true"
+        class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
         >
-          + Nuevo grupo
+        + Nuevo grupo
         </button>
 
       </div>
@@ -62,52 +63,60 @@
 
           <tbody>
 
-            <tr
-                *ngFor="let grupo of grupos"
-                class="border-b"
-            >
+  <tr
+    *ngFor="let grupo of grupos"
+    class="border-b"
+  >
 
-              <td class="p-4">
-                {{ grupo.nombre }}
-              </td>
+    <td class="p-4">
+      {{ grupo.nombre }}
+    </td>
 
-              <td class="p-4">
-                {{ grupo.grado }}
-              </td>
+    <td class="p-4">
+      {{ grupo.grado }}
+    </td>
 
-              <td class="p-4">
-                {{ grupo.director?.nombre }}
-              </td>
+    <td class="p-4">
+      {{ grupo.director?.usuario?.nombre }}
+    </td>
 
-              <td class="p-4">
+    <td class="p-4">
 
-                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+      @if (grupo.activo) {
 
-                  Activo
+        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
 
-                </span>
+          Activo
 
-              </td>
+        </span>
 
-              <td class="p-4 flex gap-3">
+      }
 
-                <button
-                  class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
-                >
-                  Editar
-                </button>
+      @else {
 
-                <button
-                  class="bg-red-100 text-red-700 px-4 py-2 rounded-lg"
-                >
-                  Desactivar
-                </button>
+        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">
 
-              </td>
+          Inactivo
 
-            </tr>
+        </span>
 
-          </tbody>
+      }
+
+    </td>
+
+    <td class="p-4">
+
+      <button
+        class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
+      >
+        Editar
+      </button>
+
+    </td>
+
+  </tr>
+
+</tbody>
 
         </table>
 
@@ -118,3 +127,121 @@
   </div>
 
 </div>
+
+@if (mostrarModal) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-2xl rounded-3xl p-10">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <h2 class="text-3xl font-bold text-blue-600">
+        Nuevo grupo
+      </h2>
+
+      <button
+        (click)="mostrarModal = false"
+        class="text-4xl text-gray-500"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="space-y-6">
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Nombre
+        </label>
+
+        <input
+          [(ngModel)]="nombre"
+          type="text"
+          class="w-full border p-4 rounded-xl"
+        />
+
+      </div>
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Grado
+        </label>
+
+        <input
+          [(ngModel)]="grado"
+          type="text"
+          class="w-full border p-4 rounded-xl"
+        />
+
+      </div>
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Director docente
+        </label>
+
+        <div class="relative">
+
+          <select
+            [(ngModel)]="directorId"
+            class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+          >
+
+            <option [ngValue]="null">
+              Selecciona un docente
+            </option>
+
+            <option
+              *ngFor="let docente of docentes"
+              [value]="docente.id"
+            >
+              {{ docente.usuario?.nombre }}
+            </option>
+
+          </select>
+
+          <div
+            class="absolute inset-y-0 right-4 flex items-center pointer-events-none"
+          >
+
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+
+            </svg>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        (click)="crearGrupo()"
+        class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
+      >
+        Crear grupo
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}

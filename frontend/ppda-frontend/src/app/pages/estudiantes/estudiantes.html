@@ -22,49 +22,137 @@
 
         <button
           class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
+          (click)="mostrarModal = true"
         >
           + Nuevo estudiante
         </button>
 
       </div>
+      
+<div class="space-y-6">
 
-      <div class="bg-white rounded-2xl shadow overflow-hidden">
+  <!-- TITULOS -->
 
-        <table class="w-full">
+  <div class="grid grid-cols-4 px-6 text-blue-700 font-bold text-lg">
 
-          <thead class="bg-blue-600 text-white">
+    <div>
+      Nombre
+    </div>
 
-            <tr>
+    <div>
+      Grupo
+    </div>
 
-              <th class="p-4 text-left">
-                Nombre
-              </th>
+    <div>
+      Información
+    </div>
 
-              <th class="p-4 text-left">
-                Documento
-              </th>
+    <div class="text-right">
+      Acciones
+    </div>
 
-              <th class="p-4 text-left">
-                Grupo
-              </th>
+  </div>
 
-              <th class="p-4 text-left">
-                Usuario
-              </th>
+  <!-- LISTA -->
 
-              <th class="p-4 text-left">
-                Acciones
-              </th>
+  <div
+    *ngFor="let estudiante of estudiantes"
+    class="bg-white rounded-3xl shadow-md hover:shadow-xl transition p-6"
+  >
 
-            </tr>
+    <div class="grid grid-cols-4 items-center gap-6">
 
-          </thead>
+      <!-- NOMBRE -->
 
-          <tbody>
+      <div>
 
-          </tbody>
+        <h2 class="text-2xl font-bold text-gray-800">
 
-        </table>
+          {{
+            usuariosEstudiantes.find(
+              usuario =>
+                usuario.id === estudiante.usuarioId
+            )?.nombre
+          }}
+
+        </h2>
+
+        <p class="text-gray-500 text-lg mt-2">
+
+          Documento:
+          {{ estudiante.documento }}
+
+        </p>
+
+      </div>
+
+      <!-- GRUPO -->
+
+      <div>
+
+        <span
+          class="bg-gray-100 text-gray-700 px-5 py-3 rounded-2xl text-lg font-semibold"
+        >
+
+          {{
+            grupos.find(
+              grupo =>
+                grupo.id === estudiante.grupoId
+            )?.nombre
+          }}
+
+        </span>
+
+      </div>
+
+      <!-- INFORMACION -->
+
+      <div class="flex flex-wrap gap-3">
+
+        <span
+          class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium"
+        >
+          Acudientes
+        </span>
+
+        <span
+          class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium"
+        >
+          Asistencia
+        </span>
+
+        <span
+          class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium"
+        >
+          Observaciones
+        </span>
+
+        <span
+          class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium"
+        >
+          Reportes
+        </span>
+
+      </div>
+
+      <!-- ACCIONES -->
+
+      <div class="flex justify-end gap-3">
+
+        <button
+
+          (click)="abrirPerfil(estudiante)"
+
+          class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-3 rounded-2xl transition font-semibold"
+        >
+          Ver perfil
+        </button>
+
+        <button
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-2xl transition font-semibold"
+        >
+          Editar
+        </button>
 
       </div>
 
@@ -73,3 +161,271 @@
   </div>
 
 </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+@if (mostrarModal) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-2xl rounded-3xl p-10">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <h2 class="text-3xl font-bold text-blue-600">
+        Nuevo estudiante
+      </h2>
+
+      <button
+        (click)="mostrarModal = false"
+        class="text-4xl text-gray-500"
+      >
+        ×
+      </button>
+
+    </div>
+
+<div class="grid grid-cols-2 gap-6">
+
+  <div>
+
+    <label class="block mb-2 font-semibold">
+      Usuario estudiante
+    </label>
+
+    <div class="relative">
+
+      <select
+        [(ngModel)]="usuarioId"
+        class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+      >
+
+        <option [ngValue]="null">
+          Selecciona usuario
+        </option>
+
+        <option
+          *ngFor="let usuario of usuariosEstudiantes"
+          [value]="usuario.id"
+        >
+          {{ usuario.nombre }}
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <div>
+
+    <label class="block mb-2 font-semibold">
+      Documento
+    </label>
+
+    <input
+      [(ngModel)]="documento"
+      type="text"
+      class="w-full border p-4 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+  </div>
+
+  <div class="col-span-2">
+
+    <label class="block mb-2 font-semibold">
+      Grupo
+    </label>
+
+    <div class="relative">
+
+      <select
+        [(ngModel)]="grupoId"
+        class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+      >
+
+        <option [ngValue]="null">
+          Selecciona grupo
+        </option>
+
+        <option
+          *ngFor="let grupo of grupos"
+          [value]="grupo.id"
+        >
+          {{ grupo.nombre }}
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <button
+    (click)="crearEstudiante()"
+    class="col-span-2 w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-2xl transition shadow-lg"
+  >
+    Crear estudiante
+  </button>
+
+</div>
+  </div>
+
+</div>
+
+}
+
+@if (mostrarPerfil) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-3xl rounded-3xl p-10 shadow-2xl">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <div>
+
+        <h2 class="text-4xl font-bold text-blue-700">
+
+          {{
+            usuariosEstudiantes.find(
+              usuario =>
+                usuario.id === estudianteSeleccionado.usuarioId
+            )?.nombre
+          }}
+
+        </h2>
+
+        <p class="text-gray-500 mt-2">
+          Perfil del estudiante
+        </p>
+
+      </div>
+
+      <button
+        (click)="mostrarPerfil = false"
+        class="text-4xl text-gray-400 hover:text-gray-600 transition"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="grid grid-cols-2 gap-6">
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Estado
+        </p>
+
+        <p class="text-lg font-semibold text-green-600">
+          Activo
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Documento
+        </p>
+
+        <p class="text-lg font-semibold">
+
+          {{ estudianteSeleccionado.documento }}
+
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Grupo
+        </p>
+
+        <p class="text-lg font-semibold">
+
+          {{
+            grupos.find(
+              grupo =>
+                grupo.id === estudianteSeleccionado.grupoId
+            )?.nombre
+          }}
+
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Edad
+        </p>
+
+        <p class="text-lg font-semibold text-gray-700">
+          Pendiente
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Fecha ingreso institución
+        </p>
+
+        <p class="text-lg font-semibold text-gray-700">
+          Pendiente
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Dirección
+        </p>
+
+        <p class="text-lg font-semibold text-gray-700">
+          Pendiente
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Teléfono
+        </p>
+
+        <p class="text-lg font-semibold text-gray-700">
+          Pendiente
+        </p>
+
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-5">
+
+        <p class="text-gray-500 text-sm mb-1">
+          Barrio
+        </p>
+
+        <p class="text-lg font-semibold text-gray-700">
+          Pendiente
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
