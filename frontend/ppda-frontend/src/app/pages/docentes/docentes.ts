@@ -18,6 +18,7 @@ import { FormsModule } from '@angular/forms';
 
 import { UsuariosService } from '../../core/services/usuarios';
 import { DocentesService } from '../../core/services/docentes';
+import { GruposService } from '../../core/services/grupos';
 
 @Component({
   selector: 'app-docentes',
@@ -43,11 +44,20 @@ export class DocentesComponent {
     private cdr =
     inject(ChangeDetectorRef);
 
+  private gruposService =
+  inject(GruposService);
+
   usuariosDocentes: any[] = [];
 
   docentes: any[] = [];
 
+  grupos: any[] = [];
+
   mostrarModal = false;
+
+  modoEdicion = false;
+
+  docenteEditandoId: number | null = null;
 
   usuarioId: number | null = null;
 
@@ -86,6 +96,7 @@ export class DocentesComponent {
     });
 
     this.cargarDocentes();
+    this.cargarGrupos();
 }
 
 
@@ -103,6 +114,29 @@ cargarDocentes() {
 
         this.docentes =
           response.docentes;
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
+
+cargarGrupos() {
+
+  this.gruposService
+
+    .listarGrupos()
+
+    .subscribe({
+
+      next: (response: any) => {
+
+        this.grupos =
+          response.grupos;
+
         this.cdr.detectChanges();
       },
 
@@ -138,6 +172,48 @@ crearDocente() {
 
       error: (error) => {
 
+        console.error(error);
+      }
+    });
+}
+
+editarDocente(docente: any) {
+
+  this.modoEdicion = true;
+
+  this.docenteEditandoId =
+    docente.id;
+
+  this.documento =
+    docente.documento;
+
+  this.telefono =
+    docente.telefono;
+
+  this.usuarioId =
+    docente.usuarioId;
+
+  this.mostrarModal = true;
+}
+
+actualizarDocente() {
+
+  if (!this.docenteEditandoId) return;
+
+  this.docentesService
+    .actualizarDocente(
+      this.docenteEditandoId,
+      this.documento,
+      this.telefono
+    )
+    .subscribe({
+      next: () => {
+        this.mostrarModal = false;
+        this.modoEdicion = false;
+        this.docenteEditandoId = null;
+        this.cargarDocentes();
+      },
+      error: (error) => {
         console.error(error);
       }
     });

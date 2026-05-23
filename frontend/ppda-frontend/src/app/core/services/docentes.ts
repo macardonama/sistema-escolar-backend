@@ -36,6 +36,30 @@ export class DocentesService {
     );
   }
 
+  actualizarDocente(
+  id: number,
+  documento: string,
+  telefono: string
+) {
+
+  return this.http.put(
+
+    `${this.apiUrl}/${id}`,
+
+    {
+      documento,
+      telefono
+    },
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
   listarDocentes() {
 
   return this.http.get(

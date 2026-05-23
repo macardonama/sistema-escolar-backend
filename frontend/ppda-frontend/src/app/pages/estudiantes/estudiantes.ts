@@ -102,9 +102,7 @@ estudianteSeleccionado: any = null;
   });
 }
 
-ngOnInit(): void {
-
-  this.cargarEstudiantes();
+cargarTodo() {
 
   this.usuariosService
 
@@ -121,6 +119,26 @@ ngOnInit(): void {
             (usuario: any) =>
               usuario.rol === 'ESTUDIANTE'
           );
+
+        this.gruposService
+
+          .listarGrupos()
+
+          .subscribe({
+
+            next: (response: any) => {
+
+              this.grupos =
+                response.grupos;
+
+              this.cargarEstudiantes();
+            },
+
+            error: (error) => {
+
+              console.error(error);
+            }
+          });
       },
 
       error: (error) => {
@@ -128,24 +146,11 @@ ngOnInit(): void {
         console.error(error);
       }
     });
+}
 
-  this.gruposService
+ngOnInit(): void {
 
-    .listarGrupos()
-
-    .subscribe({
-
-      next: (response: any) => {
-
-        this.grupos =
-          response.grupos;
-      },
-
-      error: (error) => {
-
-        console.error(error);
-      }
-    });
+  this.cargarTodo();
 }
 
 crearEstudiante() {
@@ -200,4 +205,5 @@ abrirPerfil(estudiante: any) {
 
   this.mostrarPerfil = true;
 }
+
 }

@@ -39,7 +39,7 @@ export class GruposService {
       {
         nombre,
         grado,
-        directorId
+        directorDocenteId: directorId
       },
 
       {

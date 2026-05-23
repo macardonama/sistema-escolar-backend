@@ -1,91 +1,56 @@
-<div class="w-64 min-h-screen bg-blue-700 text-white p-6">
+<div class="w-64 h-screen sticky top-0 bg-blue-700 text-white p-6 flex flex-col overflow-y-auto">
 
- <div class="flex flex-col items-center mb-10">
+  <div class="flex flex-col items-center mb-8">
 
-  <img
-    src="/ppda.png"
-    alt="PPDA"
-    class="w-40 rounded-xl"
-  />
+    <img
+      src="/ppda.png"
+      alt="PPDA"
+      class="w-36 rounded-xl"
+    />
 
-  <p class="text-sm text-blue-200 text-center mt-2">
-    Plataforma escolar institucional
-  </p>
+    <p class="text-sm text-blue-200 text-center mt-3">
+      Plataforma escolar institucional
+    </p>
 
-</div>
+  </div>
 
-  <nav class="flex flex-col gap-4">
+  <nav class="flex flex-col gap-3 flex-1">
 
-    <a
-      routerLink="/dashboard"
-      class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
+    <a routerLink="/dashboard" class="hover:bg-blue-600 p-3 rounded-lg transition">
       Dashboard
     </a>
 
-    <a
-        routerLink="/usuarios"
-        class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-        Usuarios
+    <a routerLink="/usuarios" class="hover:bg-blue-600 p-3 rounded-lg transition">
+      Usuarios
     </a>
 
-    <a
-    routerLink="/docentes"
-    class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-    Docentes
+    <a routerLink="/docentes" class="hover:bg-blue-600 p-3 rounded-lg transition">
+      Docentes
     </a>
 
-    <a
-    routerLink="/grupos"
-    class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-    Grupos
+    <a routerLink="/grupos" class="hover:bg-blue-600 p-3 rounded-lg transition">
+      Grupos
     </a>
 
-    <a
-    routerLink="/estudiantes"
-    class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-    Estudiantes
+    <a routerLink="/estudiantes" class="hover:bg-blue-600 p-3 rounded-lg transition">
+      Estudiantes
     </a>
 
-    <a
-      routerLink="/acudientes"
-      class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
+    <a routerLink="/acudientes" class="hover:bg-blue-600 p-3 rounded-lg transition">
       Acudientes
     </a>
 
-    <a
-      routerLink="/asistencias"
-      class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-      Asistencias
-    </a>
-
-    <a
-      routerLink="/observaciones"
-      class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-      Observaciones
-    </a>
-
-    <a
-      routerLink="/reportes"
-      class="hover:bg-blue-600 p-3 rounded-lg transition"
-    >
-      Reportes
+    <a routerLink="/analitica" class="hover:bg-blue-600 p-3 rounded-lg transition">
+      Analítica
     </a>
 
   </nav>
 
   <button
-  (click)="cerrarSesion()"
-  class="mt-10 bg-slate-700 hover:bg-slate-800 p-3 rounded-lg transition w-full"
->
-  Cerrar sesión
-</button>
+    (click)="cerrarSesion()"
+    class="bg-slate-700 hover:bg-slate-800 p-3 rounded-lg transition w-full mt-auto"
+  >
+    Cerrar sesión
+  </button>
 
 </div>
