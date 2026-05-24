@@ -50,4 +50,59 @@ export class GruposService {
       }
     );
   }
+
+  actualizarGrupo(
+  id: number,
+  nombre: string,
+  grado: string,
+  directorDocenteId: number
+) {
+
+  return this.http.put(
+
+    `${this.apiUrl}/${id}`,
+
+    {
+      nombre,
+      grado,
+      directorDocenteId
+    },
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
+desactivarGrupo(id: number) {
+
+  return this.http.patch(
+    `${this.apiUrl}/${id}/desactivar`,
+    {},
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
+activarGrupo(id: number) {
+
+  return this.http.patch(
+    `${this.apiUrl}/${id}/activar`,
+    {},
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
 }
