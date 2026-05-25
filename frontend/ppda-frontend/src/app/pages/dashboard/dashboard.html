@@ -2,25 +2,145 @@
 
   <app-sidebar />
 
-  <div class="flex-1 p-10">
+  <div class="flex-1">
 
-    <h1 class="text-4xl font-bold text-blue-600">
-      Dashboard PPDA
-    </h1>
+    <app-header />
 
-    <div class="mt-6 bg-white p-6 rounded-xl shadow">
+    <div class="p-10 space-y-8">
 
-      <h2 class="text-2xl font-semibold">
-        Bienvenido {{ usuario?.nombre }}
-      </h2>
+      <div class="bg-blue-700 text-white rounded-3xl p-10 shadow-lg">
 
-      <p class="mt-2 text-gray-600">
-        Rol: {{ usuario?.rol }}
-      </p>
+        <h1 class="text-4xl font-bold mb-3">
+          Bienvenido, {{ usuario?.nombre }}
+        </h1>
 
-      <p class="mt-2 text-gray-600">
-        Correo: {{ usuario?.correo }}
-      </p>
+        <p class="text-blue-100 text-xl">
+          Plataforma escolar institucional PPDA
+        </p>
+
+        <p class="text-blue-200 mt-4">
+          Rol: {{ usuario?.rol }}
+        </p>
+
+      </div>
+
+      <div class="grid grid-cols-4 gap-6">
+
+        <div class="bg-white rounded-2xl shadow p-6">
+          <p class="text-gray-500">Estudiantes activos</p>
+          <h2 class="text-3xl font-bold text-blue-700 mt-2">—</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6">
+          <p class="text-gray-500">Docentes registrados</p>
+          <h2 class="text-3xl font-bold text-green-700 mt-2">—</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6">
+          <p class="text-gray-500">Grupos académicos</p>
+          <h2 class="text-3xl font-bold text-purple-700 mt-2">—</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6">
+          <p class="text-gray-500">Acudientes</p>
+          <h2 class="text-3xl font-bold text-yellow-700 mt-2">—</h2>
+        </div>
+
+      </div>
+
+      <div class="grid grid-cols-3 gap-6">
+
+        <div class="col-span-2 bg-white rounded-3xl shadow p-8">
+
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            Noticias institucionales
+          </h2>
+
+          <div class="space-y-4">
+
+            <div class="bg-blue-50 rounded-2xl p-5">
+              <h3 class="font-bold text-blue-700">
+                Semana cultural PPDA
+              </h3>
+              <p class="text-gray-600 mt-1">
+                Actividades académicas, artísticas y deportivas durante la próxima semana.
+              </p>
+            </div>
+
+            <div class="bg-green-50 rounded-2xl p-5">
+              <h3 class="font-bold text-green-700">
+                Escuela de padres
+              </h3>
+              <p class="text-gray-600 mt-1">
+                Encuentro institucional para fortalecer el acompañamiento familiar.
+              </p>
+            </div>
+
+            <div class="bg-yellow-50 rounded-2xl p-5">
+              <h3 class="font-bold text-yellow-700">
+                Entrega de boletines
+              </h3>
+              <p class="text-gray-600 mt-1">
+                Próxima jornada de entrega de informes académicos.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="bg-white rounded-3xl shadow p-8">
+
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            Próximos eventos
+          </h2>
+
+          <div class="space-y-4">
+
+            <div class="border-l-4 border-blue-600 pl-4">
+              <p class="font-semibold">Izada de bandera</p>
+              <p class="text-gray-500 text-sm">Lunes 27 de mayo</p>
+            </div>
+
+            <div class="border-l-4 border-green-600 pl-4">
+              <p class="font-semibold">Reunión de acudientes</p>
+              <p class="text-gray-500 text-sm">Viernes 31 de mayo</p>
+            </div>
+
+            <div class="border-l-4 border-purple-600 pl-4">
+              <p class="font-semibold">Feria de proyectos</p>
+              <p class="text-gray-500 text-sm">Miércoles 5 de junio</p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="bg-white rounded-3xl shadow p-8">
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+          Galería institucional
+        </h2>
+
+        <div class="grid grid-cols-3 gap-6">
+
+          <div class="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-500">
+            Actividad académica
+          </div>
+
+          <div class="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-500">
+            Jornada cultural
+          </div>
+
+          <div class="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-500">
+            Encuentro deportivo
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
 

@@ -5,6 +5,7 @@ import { UsuariosComponent } from './pages/usuarios/usuarios';
 import { GruposComponent } from './pages/grupos/grupos';
 import { DocentesComponent } from './pages/docentes/docentes';
 import { EstudiantesComponent } from './pages/estudiantes/estudiantes';
+import { AcudientesComponent } from './pages/acudientes/acudientes';
 
 export const routes: Routes = [
   {
@@ -41,5 +42,10 @@ export const routes: Routes = [
   {
   path: 'estudiantes',
   component: EstudiantesComponent
+},
+
+{
+  path: 'acudientes',
+  component: AcudientesComponent
 },
 ];

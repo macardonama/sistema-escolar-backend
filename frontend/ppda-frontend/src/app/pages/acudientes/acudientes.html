@@ -1,0 +1,268 @@
+<div class="flex min-h-screen bg-gray-100">
+
+  <div [class.hidden]="!mostrarSidebar">
+    <app-sidebar />
+  </div>
+
+  <div class="flex-1">
+
+    <app-header
+      (toggleSidebarEvent)="toggleSidebar()"
+    />
+
+    <div class="p-10">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <h1 class="text-4xl font-bold text-blue-600">
+          Acudientes
+        </h1>
+
+        <button
+          (click)="mostrarModal = true"
+          class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
+        >
+          {{ modoEdicion ? 'Editar acudiente' : '+ Nuevo acudiente' }}
+        </button>
+
+      </div>
+
+      <div class="bg-white rounded-2xl shadow overflow-hidden">
+
+        <table class="w-full">
+
+          <thead class="bg-blue-600 text-white">
+
+            <tr>
+              <th class="p-4 text-left">Nombre</th>
+              <th class="p-4 text-left">Correo</th>
+              <th class="p-4 text-left">Teléfono</th>
+              <th class="p-4 text-left">Estudiante asociado</th>
+              <th class="p-4 text-left">Parentesco</th>
+              <th class="p-4 text-left">Acciones</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="let acudiente of acudientes"
+              class="border-b"
+            >
+
+              <td class="p-4">
+                {{ acudiente.nombre }}
+              </td>
+
+              <td class="p-4">
+                {{ acudiente.correo }}
+              </td>
+
+              <td class="p-4">
+                {{ acudiente.telefono }}
+              </td>
+
+               <td class="p-4">
+
+            @if (acudiente.estudiante?.nombre) {
+
+                <span class="font-medium text-gray-700">
+                {{ acudiente.estudiante.nombre }}
+                </span>
+
+            } @else {
+
+                <button
+                (click)="abrirAsociarEstudiante(acudiente)"
+                class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition font-medium"
+                >
+                Asociar estudiante
+                </button>
+
+            }
+
+</td>
+
+                <td class="p-4">
+                {{ acudiente.parentesco || '-' }}
+                </td>
+
+              <td class="p-4">
+              <button
+                (click)="editarAcudiente(acudiente)"
+                class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
+                >
+                Editar
+                </button>
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+@if (mostrarModal) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-2xl rounded-3xl p-10">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <h2 class="text-3xl font-bold text-blue-600">
+        + Nuevo acudiente
+      </h2>
+
+      <button
+        (click)="mostrarModal = false"
+        class="text-4xl text-gray-500"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="space-y-6">
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Usuario acudiente
+        </label>
+
+        <select
+          [(ngModel)]="usuarioId"
+          class="w-full p-4 border rounded-xl"
+        >
+
+          <option [ngValue]="null">
+            Selecciona un usuario acudiente
+          </option>
+
+          <option
+            *ngFor="let usuario of usuariosAcudientes"
+            [ngValue]="usuario.id"
+          >
+            {{ usuario.nombre }}
+          </option>
+
+        </select>
+
+      </div>
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Teléfono
+        </label>
+
+        <input
+          [(ngModel)]="telefono"
+          type="text"
+          class="w-full border p-4 rounded-xl"
+        />
+
+      </div>
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Correo
+        </label>
+
+        <input
+          [(ngModel)]="correo"
+          type="email"
+          class="w-full border p-4 rounded-xl"
+        />
+
+      </div>
+
+      <button
+        (click)="modoEdicion ? actualizarAcudiente() : crearAcudiente()"
+        class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
+        >
+        {{ modoEdicion ? 'Actualizar acudiente' : 'Crear acudiente' }}
+        </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+@if (mostrarModalAsociar) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-xl rounded-3xl p-8">
+
+    <div class="flex justify-between items-center mb-6">
+
+      <h2 class="text-2xl font-bold text-green-700">
+        Asociar estudiante
+      </h2>
+
+      <button
+        (click)="mostrarModalAsociar = false"
+        class="text-4xl text-gray-500"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="space-y-5">
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Estudiante
+        </label>
+
+        <select
+          [(ngModel)]="estudianteId"
+          class="w-full border p-4 rounded-xl"
+        >
+
+          <option [ngValue]="null">
+            Selecciona estudiante
+          </option>
+
+          <option
+            *ngFor="let estudiante of estudiantes"
+            [ngValue]="estudiante.id"
+          >
+            {{ estudiante.nombre }}
+          </option>
+
+        </select>
+
+      </div>
+
+      <button
+        (click)="asociarEstudianteAcudiente()"
+        class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl"
+      >
+        Asociar estudiante
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}

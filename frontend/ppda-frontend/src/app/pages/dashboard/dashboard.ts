@@ -8,11 +8,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
+import { HeaderComponent } from '../../shared/header/header';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, HeaderComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
