@@ -63,7 +63,7 @@ const crearEstudiante = async (datos) => {
   });
 
   return estudiante;
-};
+}; 
 const listarEstudiantes = async () => {
   const estudiantes = await prisma.estudiante.findMany({
     orderBy: {
