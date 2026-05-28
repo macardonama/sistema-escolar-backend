@@ -3,9 +3,8 @@ const prisma = require('../../config/prisma');
 const crearAcudiente = async (datos) => {
   const { nombre, telefono, correo, usuarioId } = datos;
 
-  if (!nombre) {
-    throw new Error('El nombre del acudiente es obligatorio');
-  }
+  let nombreFinal = nombre?.trim();
+  let correoFinal = correo?.trim();
 
   if (usuarioId) {
     const usuario = await prisma.usuario.findUnique({
@@ -19,13 +18,43 @@ const crearAcudiente = async (datos) => {
     if (usuario.rol !== 'ACUDIENTE') {
       throw new Error('El usuario debe tener rol ACUDIENTE');
     }
+
+    if (!usuario.activo) {
+      throw new Error('El usuario está desactivado');
+    }
+
+    if (!nombreFinal) {
+      nombreFinal = usuario.nombre;
+    }
+
+    if (!correoFinal) {
+      correoFinal = usuario.correo;
+    }
+
+    const acudienteExistente = await prisma.acudiente.findUnique({
+      where: {
+        usuarioId: Number(usuarioId),
+      },
+    });
+
+    if (acudienteExistente) {
+      throw new Error('Este usuario ya está asociado a un acudiente');
+    }
+  }
+
+  if (!nombreFinal) {
+    throw new Error('El nombre del acudiente es obligatorio si no se envía usuarioId');
+  }
+
+  if (!correoFinal) {
+    throw new Error('El correo del acudiente es obligatorio si no se envía usuarioId');
   }
 
   const acudiente = await prisma.acudiente.create({
     data: {
-      nombre,
+      nombre: nombreFinal,
       telefono,
-      correo,
+      correo: correoFinal,
       usuarioId: usuarioId ? Number(usuarioId) : null,
     },
     include: {
@@ -36,6 +65,15 @@ const crearAcudiente = async (datos) => {
           correo: true,
           rol: true,
           activo: true,
+        },
+      },
+      estudiantes: {
+        include: {
+          estudiante: {
+            include: {
+              grupo: true,
+            },
+          },
         },
       },
     },
