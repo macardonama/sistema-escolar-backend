@@ -77,12 +77,31 @@ const crearObservacion = async (datos) => {
 };
 
 const listarObservaciones = async (filtros) => {
-  const { estudianteId, docenteId, grupoId, fechaInicio, fechaFin, tipo } = filtros;
+  const {
+    estudianteId,
+    estudianteIds,
+    docenteId,
+    grupoId,
+    fechaInicio,
+    fechaFin,
+    tipo,
+    soloIndividuales,
+  } = filtros;
 
   const where = {};
 
-  if (estudianteId) {
+  if (estudianteIds && estudianteIds.length > 0) {
+    where.estudianteId = {
+      in: estudianteIds.map((id) => Number(id)),
+    };
+  } else if (estudianteId) {
     where.estudianteId = Number(estudianteId);
+  }
+
+  if (soloIndividuales) {
+    where.estudianteId = where.estudianteId || {
+      not: null,
+    };
   }
 
   if (docenteId) {
@@ -138,7 +157,6 @@ const listarObservaciones = async (filtros) => {
 
   return observaciones;
 };
-
 const obtenerObservacionPorId = async (id) => {
   const observacion = await prisma.observacion.findUnique({
     where: {

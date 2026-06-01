@@ -15,7 +15,7 @@ router.post(
 router.get(
   '/',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
   observacionesController.listarObservaciones
 );
 

@@ -1,5 +1,8 @@
 const observacionesService = require('./observaciones.service');
-const { puedeVerEstudiante } = require('../../utils/permisos');
+const {
+  puedeVerEstudiante,
+  obtenerIdsEstudiantesPermitidos,
+} = require('../../utils/permisos');
 
 const crearObservacion = async (req, res) => {
   try {
@@ -20,17 +23,39 @@ const listarObservaciones = async (req, res) => {
   try {
     const { estudianteId } = req.query;
 
-    if (estudianteId) {
-      const tienePermiso = await puedeVerEstudiante(req.usuario, estudianteId);
+    const filtros = { ...req.query };
 
-      if (!tienePermiso) {
-        return res.status(403).json({
-          mensaje: 'No tienes permiso para consultar las observaciones de este estudiante',
+    const idsPermitidos = await obtenerIdsEstudiantesPermitidos(req.usuario);
+
+    // ADMINISTRATIVO retorna null, porque puede ver todo
+    if (idsPermitidos !== null) {
+      if (idsPermitidos.length === 0) {
+        return res.json({
+          mensaje: 'Observaciones obtenidas correctamente',
+          observaciones: [],
         });
       }
+
+      if (estudianteId) {
+        const estudiantePermitido = idsPermitidos.includes(Number(estudianteId));
+
+        if (!estudiantePermitido) {
+          return res.status(403).json({
+            mensaje: 'No tienes permiso para consultar las observaciones de este estudiante',
+          });
+        }
+
+        filtros.estudianteId = Number(estudianteId);
+      } else {
+        filtros.estudianteIds = idsPermitidos;
+      }
+
+      // Para ESTUDIANTE, ACUDIENTE y DOCENTE no se devuelven observaciones generales
+      // porque estudianteId null puede exponer información general del grupo.
+      filtros.soloIndividuales = true;
     }
 
-    const observaciones = await observacionesService.listarObservaciones(req.query);
+    const observaciones = await observacionesService.listarObservaciones(filtros);
 
     res.json({
       mensaje: 'Observaciones obtenidas correctamente',
@@ -47,6 +72,23 @@ const listarObservaciones = async (req, res) => {
 const obtenerObservacionPorId = async (req, res) => {
   try {
     const observacion = await observacionesService.obtenerObservacionPorId(req.params.id);
+
+    if (!observacion.estudianteId && req.usuario.rol !== 'ADMINISTRATIVO') {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar esta observación general',
+      });
+    }
+
+    const tienePermiso = await puedeVerEstudiante(
+      req.usuario,
+      observacion.estudianteId
+    );
+
+    if (!tienePermiso) {
+      return res.status(403).json({
+        mensaje: 'No tienes permiso para consultar esta observación',
+      });
+    }
 
     res.json({
       mensaje: 'Observación obtenida correctamente',
