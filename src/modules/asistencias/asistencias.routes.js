@@ -15,17 +15,15 @@ router.post(
 router.get(
   '/',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
   asistenciasController.listarAsistencias
 );
-
 router.get(
   '/:id',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
   asistenciasController.obtenerAsistenciaPorId
 );
-
 router.put(
   '/:id',
   verificarToken,

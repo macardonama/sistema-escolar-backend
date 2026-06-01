@@ -120,6 +120,72 @@ const puedeVerAcudiente = async (usuario, acudienteId) => {
   return false;
 };
 
+const obtenerIdsEstudiantesPermitidos = async (usuario) => {
+  if (!usuario) {
+    return [];
+  }
+
+  if (esAdministrativo(usuario)) {
+    return null;
+  }
+
+  if (usuario.rol === 'ESTUDIANTE') {
+    const estudiante = await obtenerEstudiantePorUsuario(usuario.id);
+
+    if (!estudiante) {
+      return [];
+    }
+
+    return [estudiante.id];
+  }
+
+  if (usuario.rol === 'ACUDIENTE') {
+    const acudiente = await obtenerAcudientePorUsuario(usuario.id);
+
+    if (!acudiente) {
+      return [];
+    }
+
+    const relaciones = await prisma.estudianteAcudiente.findMany({
+      where: {
+        acudienteId: acudiente.id,
+      },
+      select: {
+        estudianteId: true,
+      },
+    });
+
+    return relaciones.map((relacion) => relacion.estudianteId);
+  }
+
+  if (usuario.rol === 'DOCENTE') {
+    const docente = await obtenerDocentePorUsuario(usuario.id);
+
+    if (!docente) {
+      return [];
+    }
+
+    const grupos = await prisma.grupo.findMany({
+      where: {
+        directorDocenteId: docente.id,
+      },
+      select: {
+        estudiantes: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return grupos.flatMap((grupo) =>
+      grupo.estudiantes.map((estudiante) => estudiante.id)
+    );
+  }
+
+  return [];
+};
+
 module.exports = {
   esAdministrativo,
   puedeVerEstudiante,
@@ -127,4 +193,6 @@ module.exports = {
   obtenerDocentePorUsuario,
   obtenerEstudiantePorUsuario,
   obtenerAcudientePorUsuario,
+  obtenerIdsEstudiantesPermitidos,
+
 };

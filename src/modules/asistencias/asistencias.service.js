@@ -67,11 +67,22 @@ const registrarAsistencia = async (datos) => {
 };
 
 const listarAsistencias = async (filtros) => {
-  const { estudianteId, docenteId, grupoId, fechaInicio, fechaFin } = filtros;
+  const {
+    estudianteId,
+    estudianteIds,
+    docenteId,
+    grupoId,
+    fechaInicio,
+    fechaFin,
+  } = filtros;
 
   const where = {};
 
-  if (estudianteId) {
+  if (estudianteIds && estudianteIds.length > 0) {
+    where.estudianteId = {
+      in: estudianteIds.map((id) => Number(id)),
+    };
+  } else if (estudianteId) {
     where.estudianteId = Number(estudianteId);
   }
 
