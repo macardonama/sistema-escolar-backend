@@ -81,19 +81,30 @@ Actualmente se valida que:
 
 - Un usuario con rol `ADMINISTRATIVO` pueda consultar toda la información.
 - Un usuario con rol `DOCENTE` solo pueda consultar información de estudiantes pertenecientes a grupos donde sea director.
-- Un usuario con rol `ESTUDIANTE` solo pueda consultar su propio registro.
-- Un usuario con rol `ACUDIENTE` solo pueda consultar estudiantes asociados como acudidos.
+- Un usuario con rol `ESTUDIANTE` solo pueda consultar su propio registro, asistencias, observaciones y reportes individuales.
+- Un usuario con rol `ACUDIENTE` solo pueda consultar información de estudiantes asociados como acudidos.
 
 Estas validaciones aplican actualmente en:
 
 ```txt
 GET /api/estudiantes/:id
-GET /api/reportes/asistencia/estudiante/:estudianteId
-GET /api/reportes/observaciones/estudiante/:estudianteId
-GET /api/asistencias?estudianteId=...
-GET /api/observaciones?estudianteId=...
 GET /api/acudientes/:id
+GET /api/asistencias
+GET /api/asistencias/:id
+GET /api/reportes/asistencia/estudiante/:estudianteId
+GET /api/observaciones
+GET /api/observaciones/:id
+GET /api/reportes/observaciones/estudiante/:estudianteId
 ```
+
+### Reglas importantes para `ACUDIENTE`
+
+- `GET /api/asistencias` filtra automáticamente y solo retorna asistencias de los estudiantes asociados al acudiente autenticado.
+- `GET /api/asistencias?estudianteId=...` retorna `200 OK` si el estudiante pertenece al acudiente y `403 Forbidden` si no pertenece.
+- `GET /api/asistencias/:id` valida que la asistencia pertenezca a un estudiante asociado al acudiente.
+- `GET /api/observaciones` filtra automáticamente y solo retorna observaciones individuales de los estudiantes asociados al acudiente autenticado.
+- Las observaciones generales con `estudianteId: null` no se retornan a acudientes para evitar exponer información general del grupo.
+- `GET /api/observaciones/:id` valida pertenencia antes de retornar la observación.
 
 Para que estas validaciones funcionen correctamente, los registros deben estar asociados así:
 
@@ -103,8 +114,6 @@ Usuario con rol ACUDIENTE → Acudiente.usuarioId
 Acudiente ↔ Estudiante mediante EstudianteAcudiente
 Docente ↔ Grupo mediante Grupo.directorDocenteId
 ```
-
----
 
 ## Variables de entorno
 
@@ -669,7 +678,7 @@ Body con usuario asociado:
 }
 ```
 
-> Si se envía `usuarioId`, el usuario asociado debe tener rol `ESTUDIANTE`.
+> Si se envía `usuarioId`, el usuario asociado debe tener rol `ESTUDIANTE`. Si no se envía `nombre`, el backend lo toma automáticamente desde el usuario asociado.
 
 ### Listar estudiantes
 
@@ -750,7 +759,7 @@ Roles permitidos:
 ADMINISTRATIVO
 ```
 
-Body:
+Body sin usuario asociado:
 
 ```json
 {
@@ -764,14 +773,12 @@ Body con usuario asociado:
 
 ```json
 {
-  "nombre": "Acudiente Prueba",
   "telefono": "3005551234",
-  "correo": "acudiente@test.com",
   "usuarioId": 4
 }
 ```
 
-> Si se envía `usuarioId`, el usuario asociado debe tener rol `ACUDIENTE`.
+> Si se envía `usuarioId`, el usuario asociado debe tener rol `ACUDIENTE`. Si no se envían `nombre` ni `correo`, el backend los toma automáticamente desde el usuario asociado.
 
 ### Listar acudientes
 
@@ -784,6 +791,38 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 DOCENTE
+```
+
+La respuesta incluye el usuario asociado y las relaciones con estudiantes:
+
+```json
+{
+  "id": 1,
+  "nombre": "Acudiente Prueba",
+  "correo": "acudiente@test.com",
+  "telefono": "3005551234",
+  "usuario": {
+    "id": 4,
+    "nombre": "Acudiente Prueba",
+    "correo": "acudiente@test.com",
+    "rol": "ACUDIENTE",
+    "activo": true
+  },
+  "estudiantes": [
+    {
+      "estudianteId": 1,
+      "parentesco": "Madre",
+      "estudiante": {
+        "id": 1,
+        "nombre": "Estudiante Prueba",
+        "grupo": {
+          "id": 1,
+          "nombre": "6-1"
+        }
+      }
+    }
+  ]
+}
 ```
 
 ### Consultar acudiente por ID
@@ -799,6 +838,8 @@ ADMINISTRATIVO
 DOCENTE
 ACUDIENTE
 ```
+
+> El rol `ACUDIENTE` solo puede consultar su propio registro de acudiente.
 
 ### Actualizar acudiente
 
@@ -844,7 +885,7 @@ Body:
 }
 ```
 
----
+> Un acudiente puede estar asociado a varios estudiantes. La relación se almacena mediante `EstudianteAcudiente`.
 
 ## Asistencias
 
@@ -911,6 +952,8 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 DOCENTE
+ESTUDIANTE
+ACUDIENTE
 ```
 
 Filtros disponibles por query params:
@@ -933,6 +976,19 @@ GET /api/asistencias?grupoId=1
 GET /api/asistencias?fechaInicio=2026-05-01&fechaFin=2026-05-31
 ```
 
+```http
+GET /api/asistencias?estudianteId=1
+```
+
+Reglas por pertenencia:
+
+- `ADMINISTRATIVO` puede consultar todas las asistencias.
+- `DOCENTE` consulta asistencias de estudiantes de sus grupos dirigidos.
+- `ESTUDIANTE` consulta únicamente sus propias asistencias.
+- `ACUDIENTE` consulta únicamente asistencias de sus estudiantes asociados.
+- Si `ACUDIENTE` o `ESTUDIANTE` consultan un `estudianteId` no permitido, el backend responde `403 Forbidden`.
+- Si `ACUDIENTE` consulta sin `estudianteId`, el backend filtra automáticamente por sus acudidos.
+
 ### Consultar asistencia por ID
 
 ```http
@@ -944,7 +1000,11 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 DOCENTE
+ESTUDIANTE
+ACUDIENTE
 ```
+
+> La consulta por ID también valida pertenencia. Si el registro pertenece a un estudiante no permitido para el usuario autenticado, responde `403 Forbidden`.
 
 ### Actualizar asistencia
 
@@ -968,8 +1028,6 @@ Body ejemplo:
   "observacion": "Llegó tarde, pero participó en clase"
 }
 ```
-
----
 
 ## Observaciones
 
@@ -1022,6 +1080,8 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 DOCENTE
+ESTUDIANTE
+ACUDIENTE
 ```
 
 Filtros disponibles por query params:
@@ -1045,6 +1105,16 @@ GET /api/observaciones?estudianteId=1
 GET /api/observaciones?grupoId=1&tipo=GENERAL
 ```
 
+Reglas por pertenencia:
+
+- `ADMINISTRATIVO` puede consultar todas las observaciones.
+- `DOCENTE` consulta observaciones de estudiantes de sus grupos dirigidos.
+- `ESTUDIANTE` consulta únicamente sus propias observaciones individuales.
+- `ACUDIENTE` consulta únicamente observaciones individuales de sus estudiantes asociados.
+- Las observaciones generales con `estudianteId: null` no se retornan a `ESTUDIANTE` ni `ACUDIENTE`.
+- Si `ACUDIENTE` o `ESTUDIANTE` consultan un `estudianteId` no permitido, el backend responde `403 Forbidden`.
+- Si `ACUDIENTE` consulta sin `estudianteId`, el backend filtra automáticamente por sus acudidos.
+
 ### Consultar observación por ID
 
 ```http
@@ -1059,6 +1129,8 @@ DOCENTE
 ACUDIENTE
 ESTUDIANTE
 ```
+
+> La consulta por ID valida pertenencia. Si la observación es general (`estudianteId: null`), solo `ADMINISTRATIVO` puede consultarla por ID. Si pertenece a un estudiante no permitido para el usuario autenticado, responde `403 Forbidden`.
 
 ### Actualizar observación
 
@@ -1082,8 +1154,6 @@ Body ejemplo:
   "enviarAcudiente": true
 }
 ```
-
----
 
 ## Reportes básicos
 
@@ -1221,9 +1291,6 @@ git push origin main
 ```
 
 ---
-## Colección Postman
----
-
 ## Colección de Postman
 
 El proyecto cuenta con una colección de Postman organizada por módulos para probar los endpoints del backend.
@@ -1241,7 +1308,11 @@ Acudientes
 Asistencias
 Observaciones
 Reportes
+```
+
 Variables recomendadas en Postman:
+
+```txt
 base_url
 token
 usuario_id
@@ -1251,54 +1322,60 @@ estudiante_id
 acudiente_id
 asistencia_id
 observacion_id
-La variable base_url puede apuntar al servidor local o al backend desplegado en Render:
+```
+
+La variable `base_url` puede apuntar al servidor local o al backend desplegado en Render:
+
+```txt
 Local:
 http://localhost:3000
 
 Render:
 https://sistema-escolar-backend-wlfg.onrender.com
+```
+
 Para rutas protegidas, la colección utiliza autenticación tipo Bearer Token:
+
+```txt
 Authorization: Bearer {{token}}
-Primero se debe ejecutar el endpoint de login para generar y guardar automáticamente el token en Postman.
-La colección de Postman no se sube al repositorio por seguridad y se comparte directamente con el equipo de frontend.
+```
+
+Primero se debe ejecutar el endpoint de login para generar y guardar el token en Postman.
+
+> La colección de Postman no se sube al repositorio por seguridad. Se comparte directamente con el equipo de frontend.
 
 ---
 
-## 4. Actualiza `Pendientes sugeridos`
+## Diagrama ERD
 
-Reemplaza esta parte:
+El proyecto puede generar un diagrama entidad-relación desde Prisma usando `prisma-erd-generator`.
 
-```md
-- Exportar colección organizada de Postman para compartirla con el equipo frontend.
-- Configurar ambiente de producción definitivo.
-por:
-- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints.
-- Compartir la colección de Postman directamente con el equipo frontend.
-- Validar el ambiente de producción después de cada despliegue en Render.
-Y si quieres dejar los pendientes más limpios, la sección completa podría quedar así:
-## Pendientes sugeridos
+El diagrama técnico se genera a partir de:
 
-- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints.
-- Compartir la colección de Postman directamente con el equipo frontend.
-- Agregar validaciones más robustas en entradas de datos.
-- Extender las validaciones de pertenencia a más rutas sensibles.
-- Permitir que el docente vea únicamente sus grupos en listados generales.
-- Permitir que el acudiente vea únicamente sus acudidos en listados y reportes.
-- Permitir que el estudiante vea únicamente su información en todos los módulos.
-- Cambiar la contraseña del usuario administrativo inicial después del primer acceso en producción.
-- Validar el ambiente de producción después de cada despliegue en Render.
-- Agregar pruebas automatizadas.
-- Construir frontend en Angular.
+```txt
+prisma/schema.prisma
+```
+
+Comando recomendado:
+
+```bash
+npx prisma generate
+```
+
+El archivo generado puede dejarse en la carpeta `prisma/` como evidencia técnica de la estructura de la base de datos.
+
+---
 
 ## Pendientes sugeridos
 
-- Exportar colección organizada de Postman para compartirla con el equipo frontend.
-- Agregar validaciones más robustas en entradas de datos.
-- Extender las validaciones de pertenencia a más rutas sensibles.
-- Permitir que el docente vea únicamente sus grupos en listados generales.
-- Permitir que el acudiente vea únicamente sus acudidos en listados y reportes.
-- Permitir que el estudiante vea únicamente su información en todos los módulos.
+- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints o filtros.
+- Compartir la colección de Postman directamente con el equipo frontend.
+- Probar nuevamente los permisos por rol después de cada cambio sensible.
+- Mejorar mensajes de error para duplicados y restricciones de Prisma.
+- Crear módulo de catálogos para roles, estados de asistencia y tipos de observación.
+- Revisar reportes grupales con filtros por fecha.
+- Actualizar README y Postman después de cada historia cerrada.
+- Migrar y ordenar el backend dentro del repositorio `ppda-platform/backend` cuando el frontend esté listo.
 - Cambiar la contraseña del usuario administrativo inicial después del primer acceso en producción.
-- Configurar ambiente de producción definitivo.
+- Validar el ambiente de producción después de cada despliegue en Render.
 - Agregar pruebas automatizadas.
-- Construir frontend en Angular.
