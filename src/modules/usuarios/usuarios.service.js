@@ -4,22 +4,51 @@ const prisma = require('../../config/prisma');
 const crearUsuario = async (datos) => {
   const { nombre, correo, password, rol } = datos;
 
+  const nombreLimpio = nombre?.trim();
+  const correoLimpio = correo?.trim();
+  const passwordLimpio = password?.trim();
+  const rolLimpio = rol?.trim();
+
+  if (!nombreLimpio) {
+    throw new Error('El nombre es obligatorio');
+  }
+
+  if (!correoLimpio) {
+    throw new Error('El correo es obligatorio');
+  }
+
+  if (!passwordLimpio) {
+    throw new Error('La contraseña es obligatoria');
+  }
+
+  if (!rolLimpio) {
+    throw new Error('El rol es obligatorio');
+  }
+
+  const rolesValidos = ['ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'];
+
+  if (!rolesValidos.includes(rolLimpio)) {
+    throw new Error('El rol no es válido');
+  }
+
   const usuarioExistente = await prisma.usuario.findUnique({
-    where: { correo },
+    where: {
+      correo: correoLimpio,
+    },
   });
 
   if (usuarioExistente) {
     throw new Error('Ya existe un usuario con este correo');
   }
 
-  const passwordEncriptada = await bcrypt.hash(password, 10);
+  const passwordEncriptada = await bcrypt.hash(passwordLimpio, 10);
 
   const nuevoUsuario = await prisma.usuario.create({
     data: {
-      nombre,
-      correo,
+      nombre: nombreLimpio,
+      correo: correoLimpio,
       password: passwordEncriptada,
-      rol,
+      rol: rolLimpio,
     },
   });
 
