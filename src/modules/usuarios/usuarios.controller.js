@@ -17,7 +17,7 @@ const crearUsuario = async (req, res) => {
 
 const listarUsuarios = async (req, res) => {
   try {
-    const usuarios = await usuariosService.listarUsuarios();
+    const usuarios = await usuariosService.listarUsuarios(req.query);
 
     res.json({
       mensaje: 'Usuarios obtenidos correctamente',

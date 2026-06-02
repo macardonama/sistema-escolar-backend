@@ -28,8 +28,21 @@ const crearUsuario = async (datos) => {
   return usuarioSinPassword;
 };
 
-const listarUsuarios = async () => {
+const listarUsuarios = async (filtros = {}) => {
+  const { rol, activo } = filtros;
+
+  const where = {};
+
+  if (rol) {
+    where.rol = rol;
+  }
+
+  if (activo !== undefined) {
+    where.activo = activo === 'true';
+  }
+
   const usuarios = await prisma.usuario.findMany({
+    where,
     orderBy: {
       creadoEn: 'desc',
     },
