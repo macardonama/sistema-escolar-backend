@@ -115,16 +115,73 @@ const obtenerUsuarioPorId = async (id) => {
 const actualizarUsuario = async (id, datos) => {
   const { nombre, correo, rol, activo } = datos;
 
+  const usuarioActual = await prisma.usuario.findUnique({
+    where: {
+      id: Number(id),
+    },
+  });
+
+  if (!usuarioActual) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  const data = {};
+
+  if (nombre !== undefined) {
+    const nombreLimpio = nombre?.trim();
+
+    if (!nombreLimpio) {
+      throw new Error('El nombre no puede estar vacío');
+    }
+
+    data.nombre = nombreLimpio;
+  }
+
+  if (correo !== undefined) {
+    const correoLimpio = correo?.trim();
+
+    if (!correoLimpio) {
+      throw new Error('El correo no puede estar vacío');
+    }
+
+    const usuarioConCorreo = await prisma.usuario.findUnique({
+      where: {
+        correo: correoLimpio,
+      },
+    });
+
+    if (usuarioConCorreo && usuarioConCorreo.id !== Number(id)) {
+      throw new Error('Ya existe un usuario con este correo');
+    }
+
+    data.correo = correoLimpio;
+  }
+
+  if (rol !== undefined) {
+    const rolLimpio = rol?.trim();
+
+    if (!rolLimpio) {
+      throw new Error('El rol no puede estar vacío');
+    }
+
+    const rolesValidos = ['ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'];
+
+    if (!rolesValidos.includes(rolLimpio)) {
+      throw new Error('El rol no es válido');
+    }
+
+    data.rol = rolLimpio;
+  }
+
+  if (activo !== undefined) {
+    data.activo = Boolean(activo);
+  }
+
   const usuarioActualizado = await prisma.usuario.update({
     where: {
       id: Number(id),
     },
-    data: {
-      nombre,
-      correo,
-      rol,
-      activo,
-    },
+    data,
     select: {
       id: true,
       nombre: true,
