@@ -21,32 +21,79 @@ export class LoginComponent {
   email = '';
   password = '';
   errorLogin = false;
+  mensajeError = '';
 
   login() {
 
   this.authService
     .login(this.email, this.password)
-    .subscribe({
+   .subscribe({
 
-      next: (response: any) => {
+  next: (response: any) => {
 
-        this.errorLogin = false;
+    if (response.usuario?.activo === false) {
 
-        this.cdr.detectChanges();
+      this.errorLogin = true;
 
-        localStorage.setItem(
-          'token',
-          response.token
-        );
+      this.mensajeError =
+        'Tu usuario se encuentra inactivo. Comunícate con el administrador.';
 
-        this.router.navigate(['/dashboard']);
-      },
+      this.cdr.detectChanges();
 
-      error: () => {
+      return;
+    }
 
-        this.errorLogin = true;
-        this.cdr.detectChanges();
-      }
-    });
+    this.errorLogin = false;
+
+    this.cdr.detectChanges();
+
+    localStorage.setItem(
+      'token',
+      response.token
+    );
+
+    localStorage.setItem(
+      'usuario',
+      JSON.stringify(response.usuario)
+    );
+
+  const rol = response.usuario?.rol;
+
+switch (rol) {
+
+  case 'ADMINISTRATIVO':
+  case 'DOCENTE':
+  case 'ESTUDIANTE':
+  case 'ACUDIENTE':
+
+    this.router.navigate(['/dashboard']);
+    break;
+
+  default:
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+
+    this.errorLogin = true;
+
+    this.mensajeError =
+      'Rol no reconocido. Comunícate con el administrador.';
+
+    this.cdr.detectChanges();
+}
+  },
+
+error: (error) => {
+
+  this.errorLogin = true;
+
+  this.mensajeError =
+    error.error?.mensaje ||
+    error.error?.message ||
+    'Correo o contraseña incorrectos.';
+
+  this.cdr.detectChanges();
+}
+});
 }
 }

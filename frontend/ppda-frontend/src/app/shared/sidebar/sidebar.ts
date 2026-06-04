@@ -11,9 +11,22 @@ export class SidebarComponent {
 
   private router = inject(Router);
 
+  usuario: any = null;
+
+  constructor() {
+
+    const usuarioGuardado = localStorage.getItem('usuario');
+
+    if (usuarioGuardado) {
+
+      this.usuario = JSON.parse(usuarioGuardado);
+    }
+  }
+
   cerrarSesion() {
 
     localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
 
     this.router.navigate(['/login']);
   }

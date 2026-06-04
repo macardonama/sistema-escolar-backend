@@ -84,12 +84,11 @@
 
         </div>
 
-       <div
-         *ngIf="errorLogin"
-         class="bg-red-100 text-red-700 p-4 rounded-xl text-sm"
-        >
+            <div
+        *ngIf="errorLogin"
+        class="bg-red-100 text-red-700 p-4 rounded-xl text-sm">
 
-            Correo o contraseña incorrectos
+        {{ mensajeError }}
 
         </div>
 

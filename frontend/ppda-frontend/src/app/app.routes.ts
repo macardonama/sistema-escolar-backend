@@ -6,6 +6,9 @@ import { GruposComponent } from './pages/grupos/grupos';
 import { DocentesComponent } from './pages/docentes/docentes';
 import { EstudiantesComponent } from './pages/estudiantes/estudiantes';
 import { AcudientesComponent } from './pages/acudientes/acudientes';
+import { roleGuard } from './guards/role.guard';
+import { MiPerfilComponent } from './pages/mi-perfil/mi-perfil';
+import { MisAcudidosComponent } from './pages/mis-acudidos/mis-acudidos';
 
 export const routes: Routes = [
   {
@@ -26,26 +29,64 @@ export const routes: Routes = [
 
   {
   path: 'usuarios',
-  component: UsuariosComponent
-  },
+  component: UsuariosComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO']
+  }
+},
 
-  {
+{
   path: 'grupos',
-  component: GruposComponent
-  },
+  component: GruposComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO', 'DOCENTE']
+  }
+},
 
-  {
+ {
   path: 'docentes',
-  component: DocentesComponent
-  },
+  component: DocentesComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO', 'DOCENTE']
+  }
+},
 
-  {
+{
   path: 'estudiantes',
-  component: EstudiantesComponent
+  component: EstudiantesComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO', 'DOCENTE']
+  }
 },
 
 {
   path: 'acudientes',
-  component: AcudientesComponent
+  component: AcudientesComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO', 'DOCENTE']
+  }
+},
+
+{
+  path: 'mi-perfil',
+  component: MiPerfilComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ESTUDIANTE']
+  }
+},
+
+{
+  path: 'mis-acudidos',
+  component: MisAcudidosComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ACUDIENTE']
+  }
 },
 ];
