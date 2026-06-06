@@ -55,6 +55,7 @@ model Docente {
   gruposDirigidos Grupo[]
   asistencias      Asistencia[]
   observaciones    Observacion[]
+  asignacionesAcademicas AsignacionAcademica[]
 }
 
 model Administrativo {
@@ -121,6 +122,7 @@ model Grupo {
   estudiantes   Estudiante[]
   asistencias   Asistencia[]
   observaciones Observacion[]
+  asignacionesAcademicas AsignacionAcademica[]
 }
 
 model Asistencia {
@@ -162,4 +164,21 @@ model Area {
   activo         Boolean  @default(true)
   creadoEn       DateTime @default(now())
   actualizadoEn  DateTime @updatedAt
+  asignacionesAcademicas AsignacionAcademica[]
+}
+
+model AsignacionAcademica {
+  id             Int      @id @default(autoincrement())
+  docenteId      Int
+  grupoId        Int
+  areaId         Int
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now())
+  actualizadoEn  DateTime @updatedAt
+
+  docente        Docente  @relation(fields: [docenteId], references: [id])
+  grupo          Grupo    @relation(fields: [grupoId], references: [id])
+  area           Area     @relation(fields: [areaId], references: [id])
+
+  @@unique([docenteId, grupoId, areaId])
 }
