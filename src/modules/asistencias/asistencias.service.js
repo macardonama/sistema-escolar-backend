@@ -156,6 +156,26 @@ const obtenerAsistenciaPorId = async (id) => {
         },
       },
       grupo: true,
+      asignacionAcademica: {
+      include: {
+        docente: {
+          include: {
+            usuario: {
+              select: {
+                id: true,
+                nombre: true,
+                correo: true,
+                rol: true,
+                activo: true,
+          },
+        },
+      },
+    },
+    grupo: true,
+    area: true,
+  },
+},
+                
     },
   });
 

@@ -28,69 +28,69 @@ enum EstadoAsistencia {
 }
 
 model Usuario {
-  id              Int      @id @default(autoincrement())
-  nombre          String
-  correo          String   @unique
-  password        String
-  rol             RolUsuario
-  activo          Boolean  @default(true)
-  creadoEn        DateTime @default(now())
-  actualizadoEn   DateTime @updatedAt
+  id            Int        @id @default(autoincrement())
+  nombre        String
+  correo        String     @unique
+  password      String
+  rol           RolUsuario
+  activo        Boolean    @default(true)
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @updatedAt
 
-  docente         Docente?
-  administrativo  Administrativo?
-  estudiante      Estudiante?
-  acudiente       Acudiente?
+  docente        Docente?
+  administrativo Administrativo?
+  estudiante     Estudiante?
+  acudiente      Acudiente?
 }
 
 model Docente {
-  id          Int      @id @default(autoincrement())
-  usuarioId  Int      @unique
-  documento  String?  @unique
-  telefono   String?
-  creadoEn   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @unique
+  documento String?  @unique
+  telefono  String?
+  creadoEn  DateTime @default(now())
 
   usuario Usuario @relation(fields: [usuarioId], references: [id])
 
-  gruposDirigidos Grupo[]
-  asistencias      Asistencia[]
-  observaciones    Observacion[]
+  gruposDirigidos        Grupo[]
+  asistencias            Asistencia[]
+  observaciones          Observacion[]
   asignacionesAcademicas AsignacionAcademica[]
 }
 
 model Administrativo {
-  id          Int      @id @default(autoincrement())
-  usuarioId  Int      @unique
-  cargo      String?
-  creadoEn   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @unique
+  cargo     String?
+  creadoEn  DateTime @default(now())
 
   usuario Usuario @relation(fields: [usuarioId], references: [id])
 }
 
 model Estudiante {
-  id          Int      @id @default(autoincrement())
-  usuarioId  Int?     @unique
-  nombre      String
-  documento   String?  @unique
-  grupoId     Int?
-  activo      Boolean  @default(true)
-  creadoEn    DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int?     @unique
+  nombre    String
+  documento String?  @unique
+  grupoId   Int?
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id])
   grupo   Grupo?   @relation(fields: [grupoId], references: [id])
 
-  acudientes     EstudianteAcudiente[]
-  asistencias    Asistencia[]
-  observaciones  Observacion[]
+  acudientes    EstudianteAcudiente[]
+  asistencias   Asistencia[]
+  observaciones Observacion[]
 }
 
 model Acudiente {
-  id          Int      @id @default(autoincrement())
-  usuarioId  Int?     @unique
-  nombre      String
-  telefono    String?
-  correo      String?
-  creadoEn    DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  usuarioId Int?     @unique
+  nombre    String
+  telefono  String?
+  correo    String?
+  creadoEn  DateTime @default(now())
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id])
 
@@ -98,7 +98,7 @@ model Acudiente {
 }
 
 model EstudianteAcudiente {
-  id            Int     @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   estudianteId Int
   acudienteId  Int
   parentesco   String?
@@ -119,38 +119,40 @@ model Grupo {
 
   directorDocente Docente? @relation(fields: [directorDocenteId], references: [id])
 
-  estudiantes   Estudiante[]
-  asistencias   Asistencia[]
-  observaciones Observacion[]
+  estudiantes            Estudiante[]
+  asistencias            Asistencia[]
+  observaciones          Observacion[]
   asignacionesAcademicas AsignacionAcademica[]
 }
 
 model Asistencia {
-  id            Int              @id @default(autoincrement())
-  estudianteId  Int
-  docenteId     Int
-  grupoId       Int
-  fecha         DateTime
-  estado        EstadoAsistencia
-  emocion       String?
-  observacion   String?
-  creadoEn      DateTime         @default(now())
+  id                    Int              @id @default(autoincrement())
+  estudianteId           Int
+  docenteId              Int
+  grupoId                Int
+  asignacionAcademicaId  Int?
+  fecha                  DateTime
+  estado                 EstadoAsistencia
+  emocion                String?
+  observacion            String?
+  creadoEn               DateTime         @default(now())
 
-  estudiante Estudiante @relation(fields: [estudianteId], references: [id])
-  docente    Docente    @relation(fields: [docenteId], references: [id])
-  grupo      Grupo      @relation(fields: [grupoId], references: [id])
+  estudiante             Estudiante              @relation(fields: [estudianteId], references: [id])
+  docente                Docente                  @relation(fields: [docenteId], references: [id])
+  grupo                  Grupo                    @relation(fields: [grupoId], references: [id])
+  asignacionAcademica    AsignacionAcademica?     @relation(fields: [asignacionAcademicaId], references: [id])
 }
 
 model Observacion {
-  id               Int      @id @default(autoincrement())
-  estudianteId     Int?
-  docenteId        Int
-  grupoId          Int
-  fecha            DateTime @default(now())
-  tipo             String
-  descripcion      String
-  enviarAcudiente  Boolean  @default(false)
-  creadoEn         DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  estudianteId    Int?
+  docenteId       Int
+  grupoId         Int
+  fecha           DateTime @default(now())
+  tipo            String
+  descripcion     String
+  enviarAcudiente Boolean  @default(false)
+  creadoEn        DateTime @default(now())
 
   estudiante Estudiante? @relation(fields: [estudianteId], references: [id])
   docente    Docente     @relation(fields: [docenteId], references: [id])
@@ -158,12 +160,12 @@ model Observacion {
 }
 
 model Area {
-  id             Int      @id @default(autoincrement())
-  nombre         String   @unique
-  descripcion    String?
-  activo         Boolean  @default(true)
-  creadoEn       DateTime @default(now())
-  actualizadoEn  DateTime @updatedAt
+  id                     Int                   @id @default(autoincrement())
+  nombre                 String                @unique
+  descripcion            String?
+  activo                 Boolean               @default(true)
+  creadoEn               DateTime              @default(now())
+  actualizadoEn          DateTime              @updatedAt
   asignacionesAcademicas AsignacionAcademica[]
 }
 
@@ -179,6 +181,8 @@ model AsignacionAcademica {
   docente        Docente  @relation(fields: [docenteId], references: [id])
   grupo          Grupo    @relation(fields: [grupoId], references: [id])
   area           Area     @relation(fields: [areaId], references: [id])
+
+  asistencias    Asistencia[]
 
   @@unique([docenteId, grupoId, areaId])
 }
