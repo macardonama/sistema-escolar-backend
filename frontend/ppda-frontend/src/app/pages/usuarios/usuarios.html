@@ -185,6 +185,14 @@
             class="w-full p-4 border rounded-xl"
           />
 
+          @if (errores.nombre) {
+
+        <p class="text-red-600 text-sm mt-2">
+            {{ errores.nombre }}
+        </p>
+
+        }
+
         </div>
 
         <div>
@@ -193,27 +201,48 @@
             Correo
           </label>
 
+
           <input
             type="email"
             [(ngModel)]="correo"
             class="w-full p-4 border rounded-xl"
           />
 
-        </div>
+           @if (errores.correo) {
 
-        <div>
+            <p class="text-red-600 text-sm mt-2">
+                {{ errores.correo }}
+            </p>
 
-          <label class="block mb-2 font-medium">
-            Contraseña
-          </label>
-
-          <input
-            type="password"
-            [(ngModel)]="password"
-            class="w-full p-4 border rounded-xl"
-          />
+            }
 
         </div>
+
+@if (!modoEdicion) {
+
+  <div>
+
+    <label class="block mb-2 font-medium">
+      Contraseña
+    </label>
+
+    <input
+      type="password"
+      [(ngModel)]="password"
+      class="w-full p-4 border rounded-xl"
+    />
+
+    @if (errores.password) {
+
+      <p class="text-red-600 text-sm mt-2">
+        {{ errores.password }}
+      </p>
+
+    }
+
+  </div>
+
+}
 
         <div>
 
@@ -225,6 +254,10 @@
             [(ngModel)]="rol"
             class="w-full p-4 border rounded-xl"
           >
+
+          <option value="">
+            Seleccionar rol
+           </option>
 
             <option value="DOCENTE">
               DOCENTE
@@ -244,7 +277,23 @@
 
           </select>
 
+          @if (errores.rol) {
+
+        <p class="text-red-600 text-sm mt-2">
+            {{ errores.rol }}
+        </p>
+
+        }
+
         </div>
+
+        @if (mensajeError) {
+
+        <div class="bg-red-100 text-red-700 p-4 rounded-xl text-sm">
+            {{ mensajeError }}
+        </div>
+
+        }
 
         <button
         (click)="modoEdicion ? actualizarUsuario() : crearUsuario()"

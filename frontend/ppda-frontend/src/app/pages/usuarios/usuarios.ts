@@ -31,7 +31,16 @@ export class UsuariosComponent implements OnInit {
   nombre = '';
   correo = '';
   password = '';
-  rol = 'DOCENTE';
+  rol = '';
+
+  mensajeError = '';
+
+errores = {
+  nombre: '',
+  correo: '',
+  password: '',
+  rol: ''
+};
 
   modoEdicion = false;
 
@@ -63,12 +72,48 @@ filtrarUsuarios() {
 
 abrirModal() {
 
+  this.modoEdicion = false;
+
+  this.usuarioEditandoId = null;
+
+  this.nombre = '';
+  this.correo = '';
+  this.password = '';
+  this.rol = '';
+
+  this.mensajeError = '';
+
+  this.errores = {
+    nombre: '',
+    correo: '',
+    password: '',
+    rol: ''
+  };
+
   this.mostrarModal = true;
 }
 
 cerrarModal() {
 
   this.mostrarModal = false;
+
+  this.modoEdicion = false;
+
+  this.usuarioEditandoId = null;
+
+  this.nombre = '';
+  this.correo = '';
+  this.password = '';
+  this.rol = '';
+
+  this.mensajeError = '';
+
+  this.errores = {
+    nombre: '',
+    correo: '',
+    password: '',
+    rol: ''
+  };
 }
 
 editarUsuario(usuario: any) {
@@ -85,7 +130,66 @@ editarUsuario(usuario: any) {
 
   this.mostrarModal = true;
 }
+validarFormularioCrearUsuario(): boolean {
+
+  this.errores = {
+    nombre: '',
+    correo: '',
+    password: '',
+    rol: ''
+  };
+
+  let formularioValido = true;
+
+  if (!this.nombre.trim()) {
+    this.errores.nombre = 'El nombre es obligatorio.';
+    formularioValido = false;
+  }
+
+if (!this.correo.trim()) {
+
+  this.errores.correo =
+    'El correo es obligatorio.';
+
+  formularioValido = false;
+
+} else {
+
+  const correoValido =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!correoValido.test(this.correo)) {
+
+    this.errores.correo =
+      'Debe ingresar un correo válido.';
+
+    formularioValido = false;
+  }
+}
+
+  if (!this.password.trim()) {
+    this.errores.password = 'La contraseña es obligatoria.';
+    formularioValido = false;
+  }
+
+  if (!this.rol) {
+    this.errores.rol = 'Debe seleccionar un rol.';
+    formularioValido = false;
+  }
+
+  return formularioValido;
+}
 crearUsuario() {
+
+  this.mensajeError = '';
+
+  if (!this.validarFormularioCrearUsuario()) {
+    return;
+  }
+
+  console.log('CLICK CREAR');
+
+  this.usuariosService
 
   console.log('CLICK CREAR');
 
@@ -108,14 +212,82 @@ crearUsuario() {
 
       },
 
-      error: (error) => {
+    error: (error) => {
 
-        console.error(error);
-      }
+  console.error(error);
+
+  this.mensajeError =
+    error.error?.mensaje ||
+    'No fue posible crear el usuario. Verifica la información ingresada.';
+
+  this.cdr.detectChanges();
+}
     });
+}
+validarFormularioActualizarUsuario(): boolean {
+
+  this.errores = {
+    nombre: '',
+    correo: '',
+    password: '',
+    rol: ''
+  };
+
+  let formularioValido = true;
+
+  if (!this.nombre.trim()) {
+
+    this.errores.nombre =
+      'El nombre es obligatorio.';
+
+    formularioValido = false;
+  }
+
+  if (!this.correo.trim()) {
+
+    this.errores.correo =
+      'El correo es obligatorio.';
+
+    formularioValido = false;
+
+  } else {
+
+    const correoValido =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!correoValido.test(this.correo)) {
+
+      this.errores.correo =
+        'Debe ingresar un correo válido.';
+
+      formularioValido = false;
+    }
+  }
+
+  if (!this.rol) {
+
+    this.errores.rol =
+      'Debe seleccionar un rol.';
+
+    formularioValido = false;
+  }
+
+  return formularioValido;
 }
 
 actualizarUsuario() {
+
+  this.mensajeError = '';
+
+  if (!this.validarFormularioActualizarUsuario()) {
+
+    return;
+
+  }
+
+  if (!this.usuarioEditandoId) return;
+
+  this.usuariosService
 
   if (!this.usuarioEditandoId) return;
 
@@ -141,10 +313,17 @@ actualizarUsuario() {
         this.ngOnInit();
       },
 
-      error: (error) => {
+    error: (error) => {
 
-        console.error(error);
-      }
+  console.error(error);
+
+  this.mensajeError =
+    error.error?.mensaje ||
+    error.error?.message ||
+    'No fue posible actualizar el usuario. Verifica la información ingresada.';
+
+  this.cdr.detectChanges();
+}
     });
 }
 
