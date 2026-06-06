@@ -10,6 +10,7 @@ const acudientesRoutes = require('./modules/acudientes/acudientes.routes');
 const asistenciasRoutes = require('./modules/asistencias/asistencias.routes');
 const observacionesRoutes = require('./modules/observaciones/observaciones.routes');
 const reportesRoutes = require('./modules/reportes/reportes.routes');
+const areasRoutes = require('./modules/areas/areas.routes');
 
 const app = express();
 
@@ -31,5 +32,6 @@ app.use('/api/acudientes', acudientesRoutes);
 app.use('/api/asistencias', asistenciasRoutes);
 app.use('/api/observaciones', observacionesRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/areas', areasRoutes);
 
 module.exports = app;
