@@ -11,6 +11,7 @@ const asistenciasRoutes = require('./modules/asistencias/asistencias.routes');
 const observacionesRoutes = require('./modules/observaciones/observaciones.routes');
 const reportesRoutes = require('./modules/reportes/reportes.routes');
 const areasRoutes = require('./modules/areas/areas.routes');
+const asignacionesAcademicasRoutes = require('./modules/asignacionesAcademicas/asignacionesAcademicas.routes');
 
 const app = express();
 
@@ -33,5 +34,6 @@ app.use('/api/asistencias', asistenciasRoutes);
 app.use('/api/observaciones', observacionesRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/areas', areasRoutes);
+app.use('/api/asignaciones-academicas', asignacionesAcademicasRoutes);
 
 module.exports = app;
