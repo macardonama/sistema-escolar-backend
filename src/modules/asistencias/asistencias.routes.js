@@ -12,6 +12,13 @@ router.post(
   asistenciasController.registrarAsistencia
 );
 
+router.post(
+  '/masiva',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  asistenciasController.registrarAsistenciasMasivas
+);
+
 router.get(
   '/',
   verificarToken,

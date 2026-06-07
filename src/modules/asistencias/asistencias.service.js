@@ -224,9 +224,116 @@ const actualizarAsistencia = async (id, datos) => {
   return asistencia;
 };
 
+const registrarAsistenciasMasivas = async (datos) => {
+  const { asignacionAcademicaId, fecha, asistencias } = datos;
+
+  if (!asignacionAcademicaId) {
+    throw new Error('La asignación académica es obligatoria');
+  }
+
+  if (!fecha) {
+    throw new Error('La fecha es obligatoria');
+  }
+
+  if (!Array.isArray(asistencias) || asistencias.length === 0) {
+    throw new Error('Debe enviar al menos una asistencia');
+  }
+
+  const asignacionAcademica = await prisma.asignacionAcademica.findUnique({
+    where: {
+      id: Number(asignacionAcademicaId),
+    },
+    include: {
+      docente: true,
+      grupo: true,
+      area: true,
+    },
+  });
+
+  if (!asignacionAcademica) {
+    throw new Error('Asignación académica no encontrada');
+  }
+
+  if (!asignacionAcademica.activo) {
+    throw new Error('La asignación académica no está activa');
+  }
+
+  const estadosValidos = [
+    'PRESENTE',
+    'AUSENTE',
+    'TARDE',
+    'CITA',
+    'HOSPITALIZADO',
+    'EN_CUARTO',
+  ];
+
+  const estudiantesIds = asistencias.map((item) => Number(item.estudianteId));
+
+const estudiantesEncontrados = await prisma.estudiante.findMany({
+  where: {
+    id: {
+      in: estudiantesIds,
+    },
+  },
+  select: {
+    id: true,
+  },
+});
+
+const idsEncontrados = estudiantesEncontrados.map((estudiante) => estudiante.id);
+
+const idsNoEncontrados = estudiantesIds.filter(
+  (id) => !idsEncontrados.includes(id)
+);
+
+if (idsNoEncontrados.length > 0) {
+  throw new Error(
+    `Los siguientes estudiantes no existen: ${idsNoEncontrados.join(', ')}`
+  );
+}
+  const operaciones = asistencias.map((item) => {
+    const { estudianteId, estado, emocion, observacion } = item;
+
+    if (!estudianteId) {
+      throw new Error('Cada asistencia debe tener estudianteId');
+    }
+
+    if (!estado) {
+      throw new Error('Cada asistencia debe tener estado');
+    }
+
+    if (!estadosValidos.includes(estado)) {
+      throw new Error(`Estado de asistencia no válido: ${estado}`);
+    }
+
+    return prisma.asistencia.create({
+      data: {
+        estudianteId: Number(estudianteId),
+        docenteId: asignacionAcademica.docenteId,
+        grupoId: asignacionAcademica.grupoId,
+        asignacionAcademicaId: Number(asignacionAcademicaId),
+        fecha: new Date(fecha),
+        estado,
+        emocion: estado === 'PRESENTE' ? emocion || null : null,
+        observacion: observacion?.trim() || null,
+      },
+    });
+  });
+
+  const asistenciasRegistradas = await prisma.$transaction(operaciones);
+
+  return {
+    total: asistencias.length,
+    registradas: asistenciasRegistradas.length,
+    asignacionAcademica,
+    asistencias: asistenciasRegistradas,
+  };
+};
+
 module.exports = {
   registrarAsistencia,
   listarAsistencias,
   obtenerAsistenciaPorId,
+  registrarAsistenciasMasivas,
   actualizarAsistencia,
 };

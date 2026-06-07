@@ -103,9 +103,25 @@ const actualizarAsistencia = async (req, res) => {
   }
 };
 
+const registrarAsistenciasMasivas = async (req, res) => {
+  try {
+    const resultado = await asistenciasService.registrarAsistenciasMasivas(req.body);
+
+    res.status(201).json({
+      mensaje: 'Asistencias masivas registradas correctamente',
+      resultado,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   registrarAsistencia,
   listarAsistencias,
   obtenerAsistenciaPorId,
   actualizarAsistencia,
+  registrarAsistenciasMasivas,
 };
