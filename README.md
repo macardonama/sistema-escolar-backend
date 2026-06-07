@@ -2,7 +2,7 @@
 
 Backend para sistema escolar institucional construido con **Node.js**, **Express**, **PostgreSQL** y **Prisma**.
 
-El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acudientes, asistencia, observaciones y reportes básicos.
+El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acudientes, áreas académicas, asignaciones académicas, asistencia, observaciones y reportes básicos.
 
 ---
 
@@ -35,6 +35,8 @@ src/
 │   ├── docentes/
 │   ├── estudiantes/
 │   ├── acudientes/
+│   ├── areas/
+│   ├── asignacionesAcademicas/
 │   ├── asistencias/
 │   ├── observaciones/
 │   └── reportes/
@@ -887,6 +889,224 @@ Body:
 
 > Un acudiente puede estar asociado a varios estudiantes. La relación se almacena mediante `EstudianteAcudiente`.
 
+
+## Áreas
+
+El módulo de áreas permite registrar las asignaturas o áreas académicas que se imparten en la institución, por ejemplo: Matemáticas, Ciencias Naturales, Religión, Educación Física, entre otras.
+
+### Crear área
+
+```http
+POST /api/areas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "nombre": "Matemáticas",
+  "descripcion": "Área de matemáticas"
+}
+```
+
+### Listar áreas
+
+```http
+GET /api/areas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Filtro opcional:
+
+```http
+GET /api/areas?activo=true
+```
+
+### Consultar área por ID
+
+```http
+GET /api/areas/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+### Actualizar área
+
+```http
+PUT /api/areas/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body ejemplo:
+
+```json
+{
+  "nombre": "Matemáticas",
+  "descripcion": "Área de pensamiento matemático",
+  "activo": true
+}
+```
+
+> El nombre del área debe ser único.
+
+---
+
+## Asignaciones académicas
+
+El módulo de asignaciones académicas permite relacionar un docente, un grupo y un área.  
+Esto permite saber qué docente dicta determinada área a un grupo específico.
+
+Ejemplo:
+
+```txt
+Docente: Docente Prueba
+Grupo: 6-2
+Área: Matemáticas
+```
+
+### Crear asignación académica
+
+```http
+POST /api/asignaciones-academicas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "docenteId": 20,
+  "grupoId": 1,
+  "areaId": 1
+}
+```
+
+> No se puede crear una asignación duplicada con el mismo `docenteId`, `grupoId` y `areaId`.
+
+### Listar asignaciones académicas
+
+```http
+GET /api/asignaciones-academicas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Filtros disponibles:
+
+```txt
+docenteId
+grupoId
+areaId
+activo
+```
+
+Ejemplos:
+
+```http
+GET /api/asignaciones-academicas?docenteId=20
+```
+
+```http
+GET /api/asignaciones-academicas?grupoId=1
+```
+
+```http
+GET /api/asignaciones-academicas?areaId=1
+```
+
+```http
+GET /api/asignaciones-academicas?activo=true
+```
+
+### Consultar asignación académica por ID
+
+```http
+GET /api/asignaciones-academicas/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+### Listar asignaciones por docente
+
+```http
+GET /api/asignaciones-academicas/docente/:docenteId
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Ejemplo:
+
+```http
+GET /api/asignaciones-academicas/docente/20
+```
+
+### Actualizar asignación académica
+
+```http
+PUT /api/asignaciones-academicas/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body ejemplo:
+
+```json
+{
+  "docenteId": 20,
+  "grupoId": 1,
+  "areaId": 1,
+  "activo": true
+}
+```
+
+---
+
 ## Asistencias
 
 ### Registrar asistencia
@@ -1028,6 +1248,83 @@ Body ejemplo:
   "observacion": "Llegó tarde, pero participó en clase"
 }
 ```
+
+
+### Registrar asistencias masivas
+
+```http
+POST /api/asistencias/masiva
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Este endpoint permite registrar la asistencia de varios estudiantes en una sola petición usando una asignación académica.
+
+Body:
+
+```json
+{
+  "asignacionAcademicaId": 1,
+  "fecha": "2026-06-07",
+  "asistencias": [
+    {
+      "estudianteId": 8,
+      "estado": "PRESENTE",
+      "emocion": "😊",
+      "observacion": "Participó correctamente."
+    },
+    {
+      "estudianteId": 10,
+      "estado": "AUSENTE",
+      "emocion": null,
+      "observacion": "No asistió."
+    }
+  ]
+}
+```
+
+Funcionamiento:
+
+- El backend toma `docenteId` y `grupoId` desde la asignación académica.
+- Valida que la asignación académica exista y esté activa.
+- Valida que los estudiantes existan.
+- Valida que los estudiantes pertenezcan al grupo de la asignación académica.
+- Si la asistencia no existe, la crea.
+- Si ya existe una asistencia para el mismo estudiante, asignación académica y fecha, la actualiza mediante `upsert`.
+- La emoción solo se guarda cuando el estado es `PRESENTE`.
+
+Llave lógica usada para evitar duplicados:
+
+```txt
+estudianteId + asignacionAcademicaId + fecha
+```
+
+Respuesta esperada:
+
+```json
+{
+  "mensaje": "Asistencias masivas registradas correctamente",
+  "resultado": {
+    "total": 2,
+    "creadas": 2,
+    "actualizadas": 0
+  }
+}
+```
+
+Respuesta cuando un estudiante no pertenece al grupo de la asignación:
+
+```json
+{
+  "mensaje": "Los siguientes estudiantes no pertenecen al grupo de la asignación académica: Nombre Estudiante (ID: 1)"
+}
+```
+
 
 ## Observaciones
 
@@ -1261,12 +1558,15 @@ fechaFin
 7. Crear estudiante asociado al grupo.
 8. Crear acudiente.
 9. Asociar estudiante con acudiente.
-10. Registrar asistencia.
-11. Registrar observación general.
-12. Registrar observación individual.
-13. Consultar reportes básicos.
-14. Probar permisos por pertenencia con usuarios `ESTUDIANTE` y `ACUDIENTE`.
-15. Probar nuevamente usando la URL pública de Render.
+10. Crear área académica.
+11. Crear asignación académica asociando docente, grupo y área.
+12. Registrar asistencia individual.
+13. Registrar asistencias masivas por asignación académica.
+14. Registrar observación general.
+15. Registrar observación individual.
+16. Consultar reportes básicos.
+17. Probar permisos por pertenencia con usuarios `ESTUDIANTE` y `ACUDIENTE`.
+18. Probar nuevamente usando la URL pública de Render.
 
 ---
 
@@ -1305,6 +1605,8 @@ Grupos
 Docentes
 Estudiantes
 Acudientes
+Áreas
+Asignaciones Académicas
 Asistencias
 Observaciones
 Reportes
@@ -1320,6 +1622,8 @@ docente_id
 grupo_id
 estudiante_id
 acudiente_id
+area_id
+asignacion_academica_id
 asistencia_id
 observacion_id
 ```
@@ -1343,6 +1647,41 @@ Authorization: Bearer {{token}}
 Primero se debe ejecutar el endpoint de login para generar y guardar el token en Postman.
 
 > La colección de Postman no se sube al repositorio por seguridad. Se comparte directamente con el equipo de frontend.
+
+
+Requests nuevos recomendados:
+
+```txt
+Áreas / Crear área
+POST {{base_url}}/api/areas
+
+Áreas / Listar áreas
+GET {{base_url}}/api/areas
+
+Áreas / Consultar área por ID
+GET {{base_url}}/api/areas/{{area_id}}
+
+Áreas / Actualizar área
+PUT {{base_url}}/api/areas/{{area_id}}
+
+Asignaciones Académicas / Crear asignación académica
+POST {{base_url}}/api/asignaciones-academicas
+
+Asignaciones Académicas / Listar asignaciones académicas
+GET {{base_url}}/api/asignaciones-academicas
+
+Asignaciones Académicas / Consultar asignación académica por ID
+GET {{base_url}}/api/asignaciones-academicas/{{asignacion_academica_id}}
+
+Asignaciones Académicas / Listar asignaciones por docente
+GET {{base_url}}/api/asignaciones-academicas/docente/{{docente_id}}
+
+Asignaciones Académicas / Actualizar asignación académica
+PUT {{base_url}}/api/asignaciones-academicas/{{asignacion_academica_id}}
+
+Asistencias / Registrar asistencias masivas
+POST {{base_url}}/api/asistencias/masiva
+```
 
 ---
 
