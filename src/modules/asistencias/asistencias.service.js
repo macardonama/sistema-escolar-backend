@@ -272,17 +272,33 @@ const registrarAsistenciasMasivas = async (datos) => {
   const estudiantesIds = asistencias.map((item) => Number(item.estudianteId));
 
   const estudiantesEncontrados = await prisma.estudiante.findMany({
-    where: {
-      id: {
-        in: estudiantesIds,
-      },
+  where: {
+    id: {
+      in: estudiantesIds,
     },
-    select: {
-      id: true,
-    },
-  });
+  },
+  select: {
+    id: true,
+    nombre: true,
+    grupoId: true,
+  },
+});
 
   const idsEncontrados = estudiantesEncontrados.map((estudiante) => estudiante.id);
+
+  const estudiantesFueraDelGrupo = estudiantesEncontrados.filter(
+  (estudiante) => estudiante.grupoId !== asignacionAcademica.grupoId
+);
+
+if (estudiantesFueraDelGrupo.length > 0) {
+  const detalle = estudiantesFueraDelGrupo
+    .map((estudiante) => `${estudiante.nombre} (ID: ${estudiante.id})`)
+    .join(', ');
+
+  throw new Error(
+    `Los siguientes estudiantes no pertenecen al grupo de la asignación académica: ${detalle}`
+  );
+}
 
   const idsNoEncontrados = estudiantesIds.filter(
     (id) => !idsEncontrados.includes(id)
