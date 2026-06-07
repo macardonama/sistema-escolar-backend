@@ -267,30 +267,53 @@ const registrarAsistenciasMasivas = async (datos) => {
     'EN_CUARTO',
   ];
 
+  const fechaAsistencia = new Date(fecha);
+
   const estudiantesIds = asistencias.map((item) => Number(item.estudianteId));
 
-const estudiantesEncontrados = await prisma.estudiante.findMany({
-  where: {
-    id: {
-      in: estudiantesIds,
+  const estudiantesEncontrados = await prisma.estudiante.findMany({
+    where: {
+      id: {
+        in: estudiantesIds,
+      },
     },
-  },
-  select: {
-    id: true,
-  },
-});
+    select: {
+      id: true,
+    },
+  });
 
-const idsEncontrados = estudiantesEncontrados.map((estudiante) => estudiante.id);
+  const idsEncontrados = estudiantesEncontrados.map((estudiante) => estudiante.id);
 
-const idsNoEncontrados = estudiantesIds.filter(
-  (id) => !idsEncontrados.includes(id)
-);
-
-if (idsNoEncontrados.length > 0) {
-  throw new Error(
-    `Los siguientes estudiantes no existen: ${idsNoEncontrados.join(', ')}`
+  const idsNoEncontrados = estudiantesIds.filter(
+    (id) => !idsEncontrados.includes(id)
   );
-}
+
+  if (idsNoEncontrados.length > 0) {
+    throw new Error(
+      `Los siguientes estudiantes no existen: ${idsNoEncontrados.join(', ')}`
+    );
+  }
+
+  const asistenciasExistentes = await prisma.asistencia.findMany({
+    where: {
+      asignacionAcademicaId: Number(asignacionAcademicaId),
+      fecha: fechaAsistencia,
+      estudianteId: {
+        in: estudiantesIds,
+      },
+    },
+    select: {
+      estudianteId: true,
+    },
+  });
+
+  const idsExistentes = asistenciasExistentes.map(
+    (asistencia) => asistencia.estudianteId
+  );
+
+  let creadas = 0;
+  let actualizadas = 0;
+
   const operaciones = asistencias.map((item) => {
     const { estudianteId, estado, emocion, observacion } = item;
 
@@ -306,13 +329,35 @@ if (idsNoEncontrados.length > 0) {
       throw new Error(`Estado de asistencia no válido: ${estado}`);
     }
 
-    return prisma.asistencia.create({
-      data: {
-        estudianteId: Number(estudianteId),
+    const estudianteIdNumero = Number(estudianteId);
+
+    if (idsExistentes.includes(estudianteIdNumero)) {
+      actualizadas += 1;
+    } else {
+      creadas += 1;
+    }
+
+    return prisma.asistencia.upsert({
+      where: {
+        estudianteId_asignacionAcademicaId_fecha: {
+          estudianteId: estudianteIdNumero,
+          asignacionAcademicaId: Number(asignacionAcademicaId),
+          fecha: fechaAsistencia,
+        },
+      },
+      update: {
+        estado,
+        emocion: estado === 'PRESENTE' ? emocion || null : null,
+        observacion: observacion?.trim() || null,
+        docenteId: asignacionAcademica.docenteId,
+        grupoId: asignacionAcademica.grupoId,
+      },
+      create: {
+        estudianteId: estudianteIdNumero,
         docenteId: asignacionAcademica.docenteId,
         grupoId: asignacionAcademica.grupoId,
         asignacionAcademicaId: Number(asignacionAcademicaId),
-        fecha: new Date(fecha),
+        fecha: fechaAsistencia,
         estado,
         emocion: estado === 'PRESENTE' ? emocion || null : null,
         observacion: observacion?.trim() || null,
@@ -320,13 +365,14 @@ if (idsNoEncontrados.length > 0) {
     });
   });
 
-  const asistenciasRegistradas = await prisma.$transaction(operaciones);
+  const asistenciasProcesadas = await prisma.$transaction(operaciones);
 
   return {
     total: asistencias.length,
-    registradas: asistenciasRegistradas.length,
+    creadas,
+    actualizadas,
     asignacionAcademica,
-    asistencias: asistenciasRegistradas,
+    asistencias: asistenciasProcesadas,
   };
 };
 

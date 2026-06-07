@@ -127,20 +127,22 @@ model Grupo {
 
 model Asistencia {
   id                    Int              @id @default(autoincrement())
-  estudianteId           Int
-  docenteId              Int
-  grupoId                Int
-  asignacionAcademicaId  Int?
-  fecha                  DateTime
-  estado                 EstadoAsistencia
-  emocion                String?
-  observacion            String?
-  creadoEn               DateTime         @default(now())
+  estudianteId          Int
+  docenteId             Int
+  grupoId               Int
+  asignacionAcademicaId Int?
+  fecha                 DateTime
+  estado                EstadoAsistencia
+  emocion               String?
+  observacion           String?
+  creadoEn              DateTime         @default(now())
 
-  estudiante             Estudiante              @relation(fields: [estudianteId], references: [id])
-  docente                Docente                  @relation(fields: [docenteId], references: [id])
-  grupo                  Grupo                    @relation(fields: [grupoId], references: [id])
-  asignacionAcademica    AsignacionAcademica?     @relation(fields: [asignacionAcademicaId], references: [id])
+  estudiante          Estudiante           @relation(fields: [estudianteId], references: [id])
+  docente             Docente              @relation(fields: [docenteId], references: [id])
+  grupo               Grupo                @relation(fields: [grupoId], references: [id])
+  asignacionAcademica AsignacionAcademica? @relation(fields: [asignacionAcademicaId], references: [id])
+
+  @@unique([estudianteId, asignacionAcademicaId, fecha])
 }
 
 model Observacion {
@@ -170,19 +172,19 @@ model Area {
 }
 
 model AsignacionAcademica {
-  id             Int      @id @default(autoincrement())
-  docenteId      Int
-  grupoId        Int
-  areaId         Int
-  activo         Boolean  @default(true)
-  creadoEn       DateTime @default(now())
-  actualizadoEn  DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  docenteId     Int
+  grupoId       Int
+  areaId        Int
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
 
-  docente        Docente  @relation(fields: [docenteId], references: [id])
-  grupo          Grupo    @relation(fields: [grupoId], references: [id])
-  area           Area     @relation(fields: [areaId], references: [id])
+  docente Docente @relation(fields: [docenteId], references: [id])
+  grupo   Grupo   @relation(fields: [grupoId], references: [id])
+  area    Area    @relation(fields: [areaId], references: [id])
 
-  asistencias    Asistencia[]
+  asistencias Asistencia[]
 
   @@unique([docenteId, grupoId, areaId])
 }
