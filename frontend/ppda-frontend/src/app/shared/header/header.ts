@@ -16,22 +16,37 @@ export class HeaderComponent implements OnInit {
 
   usuario: any = {};
 
-  ngOnInit(): void {
+ngOnInit(): void {
 
-    this.authService.obtenerPerfil()
-      .subscribe({
+  const usuarioGuardado =
+    localStorage.getItem('usuario');
 
-        next: (response: any) => {
+  if (usuarioGuardado) {
 
-          this.usuario = response.usuario;
-        },
-
-        error: (error) => {
-
-          console.error(error);
-        }
-      });
+    this.usuario =
+      JSON.parse(usuarioGuardado);
   }
+
+  this.authService.obtenerPerfil()
+    .subscribe({
+
+      next: (response: any) => {
+
+        this.usuario =
+          response.usuario;
+
+        localStorage.setItem(
+          'usuario',
+          JSON.stringify(response.usuario)
+        );
+      },
+
+      error: (error) => {
+
+        console.error(error);
+      }
+    });
+}
 
       @Output()
     toggleSidebarEvent =

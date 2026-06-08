@@ -14,20 +14,100 @@
 
     <div class="p-10">
 
+      @if (!mostrarDetalleGrupo) {
+
       <div class="flex justify-between items-center mb-8">
 
-        <h1 class="text-4xl font-bold text-blue-600">
-          Grupos
-        </h1>
+  <h1 class="text-5xl font-bold text-blue-600">
+    Grupos
+  </h1>
 
-       <button
-        (click)="mostrarModal = true"
-        class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
-        >
-        {{ modoEdicion ? 'Editar grupo' : '+ Nuevo grupo' }}
-        </button>
+  <button
+    (click)="abrirModalGrupo()"
+    class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl"
+  >
+    + Nuevo grupo
+  </button>
 
-      </div>
+</div>
+
+<div class="mb-8">
+
+  <p class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+    Filtrar
+  </p>
+
+  <div class="grid grid-cols-3 gap-4">
+
+    <select
+      [(ngModel)]="filtroGrado"
+      (change)="aplicarFiltrosGrupos()"
+      class="border p-3 rounded-xl"
+    >
+      <option value="TODOS">
+        Todos los grados
+      </option>
+
+      <option
+        *ngFor="let gradoOpcion of grados"
+        [value]="gradoOpcion"
+      >
+        {{ gradoOpcion }}
+      </option>
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroDirector"
+      (change)="aplicarFiltrosGrupos()"
+      class="border p-3 rounded-xl"
+    >
+      <option value="TODOS">
+        Todos los docentes
+      </option>
+
+      <option
+        *ngFor="let docente of docentes"
+        [value]="docente.id"
+      >
+        {{ docente.usuario?.nombre }}
+      </option>
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroEstado"
+      (change)="aplicarFiltrosGrupos()"
+      class="border p-3 rounded-xl"
+    >
+      <option value="TODOS">
+        Todos los estados
+      </option>
+
+      <option value="ACTIVO">
+        Activos
+      </option>
+
+      <option value="INACTIVO">
+        Inactivos
+      </option>
+
+    </select>
+
+  </div><div class="mt-3">
+
+  <button
+    (click)="limpiarFiltros()"
+    class="text-blue-600 underline text-sm hover:text-blue-800"
+  >
+    Limpiar filtros
+  </button>
+
+</div>
+
+
+
+</div>
 <div class="space-y-5">
 
   <div class="grid grid-cols-4 px-6 text-blue-700 font-bold text-lg">
@@ -43,7 +123,7 @@
   </div>
 
   <div
-    *ngFor="let grupo of grupos"
+    *ngFor="let grupo of gruposFiltrados"
     class="bg-white rounded-3xl shadow-md hover:shadow-xl transition p-6"
   >
 
@@ -107,165 +187,49 @@
         Ver grupo
       </button>
 
-        <button
+       @if (usuario?.rol === 'ADMINISTRATIVO') {
 
-        (click)="editarGrupo(grupo)"
-
-        class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-2xl transition font-semibold"
-        >
-        Editar
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-    </div>
-
-  </div>
-
-</div>
-
-@if (mostrarModal) {
-
-<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-  <div class="bg-white w-full max-w-2xl rounded-3xl p-10">
-
-    <div class="flex justify-between items-center mb-8">
-
-      <h2 class="text-3xl font-bold text-blue-600">
-          {{ modoEdicion ? 'Editar grupo' : 'Nuevo grupo' }}
-      </h2>
-
-      <button
-        (click)="mostrarModal = false"
-        class="text-4xl text-gray-500"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div class="space-y-6">
-
-      <div>
-
-        <label class="block mb-2 font-semibold">
-          Nombre
-        </label>
-
-        <input
-          [(ngModel)]="nombre"
-          type="text"
-          class="w-full border p-4 rounded-xl"
-        />
-
-      </div>
-
-      <div>
-
-        <label class="block mb-2 font-semibold">
-          Grado
-        </label>
-
-        <input
-          [(ngModel)]="grado"
-          type="text"
-          class="w-full border p-4 rounded-xl"
-        />
-
-      </div>
-
-      <div>
-
-        <label class="block mb-2 font-semibold">
-          Director docente
-        </label>
-
-        <div class="relative">
-
-          <select
-            [(ngModel)]="directorId"
-            class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+          <button
+            (click)="editarGrupo(grupo)"
+            class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold"
           >
-
-            <option [ngValue]="null">
-              Selecciona un docente
-            </option>
-
-            <option
-              *ngFor="let docente of docentes"
-              [ngValue]="docente.id"
-            >
-              {{ docente.usuario?.nombre }}
-            </option>
-
-          </select>
-
-          <div
-            class="absolute inset-y-0 right-4 flex items-center pointer-events-none"
-          >
-
-            <svg
-              class="w-5 h-5 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-            >
-
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-
-            </svg>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    @if (modoEdicion) {
-
-        <button
-            (click)="cambiarEstadoLocalGrupo()"
-            [class]="activoEditando
-            ? 'w-full mb-4 bg-red-100 hover:bg-red-200 text-red-700 p-4 rounded-xl transition font-semibold'
-            : 'w-full mb-4 bg-green-100 hover:bg-green-200 text-green-700 p-4 rounded-xl transition font-semibold'"
-        >
-            {{ activoEditando ? 'Desactivar grupo' : 'Activar grupo' }}
-        </button>
+            Editar
+          </button>
 
         }
 
-      <button
-        (click)="modoEdicion ? actualizarGrupo() : crearGrupo()"
-        class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
-      >
-        {{ modoEdicion ? 'Actualizar grupo' : 'Crear grupo' }}
-      </button>
+      </div>
 
     </div>
 
   </div>
 
-</div>
+  @if (gruposFiltrados.length === 0) {
 
+  <div
+    class="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center mt-6"
+  >
+
+    <p class="text-lg font-semibold text-gray-600">
+      No se encontraron grupos
+    </p>
+
+    <p class="text-sm text-gray-500 mt-2">
+      No existen grupos que coincidan con los filtros seleccionados.
+    </p>
+
+  </div>
+
+}
+
+</div>
 }
 
 @if (mostrarDetalleGrupo) {
 
-<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+<div class="space-y-8">
 
- <div class="bg-white w-full max-w-7xl rounded-3xl p-10 relative max-h-[90vh] overflow-y-auto">
+ <div class="bg-white rounded-3xl shadow p-10">
 
     <div class="flex justify-between items-start mb-8">
 
@@ -280,10 +244,10 @@
       </div>
 
       <button
-        (click)="mostrarDetalleGrupo = false"
-        class="text-4xl text-gray-400 hover:text-gray-600 transition"
+        (click)="volverAListadoGrupos()"
+        class="bg-blue-100 text-blue-700 px-6 py-3 rounded-xl font-semibold"
       >
-        ×
+        Volver
       </button>
 
     </div>
@@ -1036,3 +1000,213 @@
 </div>
 
 }
+
+    </div>
+
+  </div>
+
+</div>
+
+@if (mostrarModal) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-2xl rounded-3xl p-10">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <h2 class="text-3xl font-bold text-blue-600">
+          {{ modoEdicion ? 'Editar grupo' : 'Nuevo grupo' }}
+      </h2>
+
+      <button
+        (click)="cerrarModalGrupo()"
+        class="text-4xl text-gray-500"
+      >
+        ×
+      </button>
+
+    </div>
+
+    @if (modoEdicion && !activoEditando) {
+
+  <div class="bg-yellow-100 text-yellow-800 p-4 rounded-xl mb-6 text-sm">
+    Este grupo está inactivo. Para editar su información primero debes activarlo.
+  </div>
+
+}
+
+    <div class="space-y-6">
+
+   <div>
+
+  <label class="block mb-2 font-semibold">
+    Grado
+  </label>
+
+  <select
+    [(ngModel)]="grado"
+    class="w-full border p-4 rounded-xl bg-white"
+  >
+
+    <option value="">
+      Selecciona un grado
+    </option>
+
+    <option
+      *ngFor="let gradoOpcion of grados"
+      [disabled]="modoEdicion && !activoEditando"
+      [value]="gradoOpcion"
+    >
+      {{ gradoOpcion }}
+    </option>
+
+  </select>
+
+  @if (erroresGrupo.grado) {
+
+    <p class="text-red-600 text-sm mt-2">
+      {{ erroresGrupo.grado }}
+    </p>
+
+  }
+
+</div>
+
+<div>
+
+  <label class="block mb-2 font-semibold">
+    Identificador del grupo
+  </label>
+
+  <select
+    [(ngModel)]="identificador"
+    [disabled]="modoEdicion && !activoEditando"
+    class="w-full border p-4 rounded-xl bg-white"
+  >
+
+    <option value="">
+      Selecciona identificador
+    </option>
+
+    <option
+      *ngFor="let identificadorOpcion of identificadores"
+      [value]="identificadorOpcion"
+    >
+      {{ identificadorOpcion }}
+    </option>
+
+  </select>
+
+@if (erroresGrupo.identificador) {
+
+  <p class="text-red-600 text-sm mt-2">
+    {{ erroresGrupo.identificador }}
+  </p>
+
+}
+
+</div>
+
+<div>
+
+  <label class="block mb-2 font-semibold">
+    Nombre generado
+  </label>
+
+  <div class="w-full border p-4 rounded-xl bg-gray-100 text-gray-700">
+    {{ obtenerNombreGrupo() || 'Selecciona grado e identificador' }}
+  </div>
+
+</div>
+
+      <div>
+
+        <label class="block mb-2 font-semibold">
+          Director docente
+        </label>
+
+        <div class="relative">
+
+          <select
+            [(ngModel)]="directorId"
+            [disabled]="modoEdicion && !activoEditando"
+            class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+          >
+
+            <option [ngValue]="null">
+              Selecciona un docente
+            </option>
+
+            <option
+              *ngFor="let docente of docentes"
+              [ngValue]="docente.id"
+            >
+              {{ docente.usuario?.nombre }}
+            </option>
+
+          </select>
+
+          <div
+            class="absolute inset-y-0 right-4 flex items-center pointer-events-none"
+          >
+
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+
+            </svg>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    @if (modoEdicion) {
+
+        <button
+            (click)="cambiarEstadoLocalGrupo()"
+            [class]="activoEditando
+            ? 'w-full mb-4 bg-red-100 hover:bg-red-200 text-red-700 p-4 rounded-xl transition font-semibold'
+            : 'w-full mb-4 bg-green-100 hover:bg-green-200 text-green-700 p-4 rounded-xl transition font-semibold'"
+        >
+            {{ activoEditando ? 'Desactivar grupo' : 'Activar grupo' }}
+        </button>
+
+        }
+
+            @if (mensajeErrorGrupo) {
+
+        <div class="bg-red-100 text-red-700 p-4 rounded-xl text-sm">
+          {{ mensajeErrorGrupo }}
+        </div>
+
+      }
+
+      <button
+        (click)="modoEdicion ? actualizarGrupo() : crearGrupo()"
+        class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
+      >
+        {{ modoEdicion ? 'Actualizar grupo' : 'Crear grupo' }}
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+

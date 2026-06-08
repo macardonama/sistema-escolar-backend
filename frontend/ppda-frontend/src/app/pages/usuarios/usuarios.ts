@@ -382,11 +382,10 @@ activarUsuario(id: number) {
 
         console.log(response);
 
-        this.usuarios =
-          response.usuarios;
+       this.usuarios =
+        response.usuarios;
 
-        this.usuariosFiltrados =
-          response.usuarios;
+       this.filtrarUsuarios();
 
         this.cdr.detectChanges();
       },

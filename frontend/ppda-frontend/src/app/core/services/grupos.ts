@@ -26,48 +26,55 @@ export class GruposService {
     );
   }
 
-  crearGrupo(
-    nombre: string,
-    grado: string,
-    directorId: number
-  ) {
+crearGrupo(
+  nombre: string,
+  grado: string,
+  directorId?: number | null
+) {
 
-    return this.http.post(
+  const body: any = {
+    nombre,
+    grado
+  };
 
-      this.apiUrl,
-
-      {
-        nombre,
-        grado,
-        directorDocenteId: directorId
-      },
-
-      {
-        headers: {
-          Authorization:
-            `Bearer ${localStorage.getItem('token')}`
-        }
-      }
-    );
+  if (directorId) {
+    body.directorDocenteId = directorId;
   }
 
-  actualizarGrupo(
+  return this.http.post(
+
+    this.apiUrl,
+
+    body,
+
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
+
+actualizarGrupo(
   id: number,
   nombre: string,
   grado: string,
-  directorDocenteId: number
+  directorId?: number | null
 ) {
 
+  const body: any = {
+    nombre,
+    grado
+  };
+
+  if (directorId) {
+    body.directorDocenteId = directorId;
+  }
+
   return this.http.put(
-
     `${this.apiUrl}/${id}`,
-
-    {
-      nombre,
-      grado,
-      directorDocenteId
-    },
-
+    body,
     {
       headers: {
         Authorization:

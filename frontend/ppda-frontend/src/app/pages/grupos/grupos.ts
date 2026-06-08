@@ -50,12 +50,24 @@ export class GruposComponent implements OnInit {
 
   grupos: any[] = [];
 
+  gruposFiltrados: any[] = [];
+
+  filtroTextoGrupo = '';
+
+  filtroGrado = 'TODOS';
+
+  filtroDirector = 'TODOS';
+
+  filtroEstado = 'TODOS';
+
   mostrarDetalleGrupo = false;
 
   grupoSeleccionado: any = null; 
 
   private docentesService =
   inject(DocentesService);
+
+  usuario: any = {};
 
   docentes: any[] = [];
 
@@ -71,7 +83,42 @@ export class GruposComponent implements OnInit {
 
   grado = '';
 
+  identificador = '';
+
   directorId: number | null = null;
+
+  grados = [
+  'Transición',
+  'Primero',
+  'Segundo',
+  'Tercero',
+  'Cuarto',
+  'Quinto',
+  'Sexto',
+  'Séptimo',
+  'Octavo',
+  'Noveno',
+  'Décimo',
+  'Once'
+];
+
+identificadores = [
+  'A',
+  'B',
+  'C',
+  'D',
+  '1',
+  '2',
+  '3',
+  '4'
+];
+
+  mensajeErrorGrupo = '';
+
+erroresGrupo = {
+  grado: '',
+  identificador: ''
+};
 
   mostrarFormularioAsistencia = false;
 
@@ -128,6 +175,15 @@ export class GruposComponent implements OnInit {
 
   ngOnInit(): void {
 
+    const usuarioGuardado =
+  localStorage.getItem('usuario');
+
+if (usuarioGuardado) {
+
+  this.usuario =
+    JSON.parse(usuarioGuardado);
+}
+
     this.cargarEstudiantes();
     this.docentesService
 
@@ -154,6 +210,17 @@ export class GruposComponent implements OnInit {
     this.cargarGrupos();
 }
 
+limpiarFiltros() {
+
+  this.filtroGrado = 'TODOS';
+
+  this.filtroDirector = 'TODOS';
+
+  this.filtroEstado = 'TODOS';
+
+  this.aplicarFiltrosGrupos();
+}
+
 cargarGrupos() {
 
   this.gruposService
@@ -166,8 +233,10 @@ cargarGrupos() {
 
         console.log(response);
 
-        this.grupos =
-          response.grupos;
+       this.grupos =
+        response.grupos;
+
+      this.aplicarFiltrosGrupos();
         this.cdr.detectChanges();
       },
 
@@ -178,14 +247,104 @@ cargarGrupos() {
     });
 }
 
+aplicarFiltrosGrupos() {
+
+  this.gruposFiltrados =
+    this.grupos.filter((grupo: any) => {
+
+      const coincideGrado =
+        this.filtroGrado === 'TODOS' ||
+        grupo.grado === this.filtroGrado;
+
+      const coincideDirector =
+        this.filtroDirector === 'TODOS' ||
+        Number(grupo.directorDocenteId) ===
+          Number(this.filtroDirector);
+
+      const coincideEstado =
+        this.filtroEstado === 'TODOS' ||
+        (
+          this.filtroEstado === 'ACTIVO' &&
+          grupo.activo === true
+        ) ||
+        (
+          this.filtroEstado === 'INACTIVO' &&
+          grupo.activo === false
+        );
+
+      return (
+        coincideGrado &&
+        coincideDirector &&
+        coincideEstado
+      );
+    });
+
+  this.cdr.detectChanges();
+}
+
+validarFormularioGrupo(): boolean {
+
+  this.erroresGrupo = {
+    grado: '',
+    identificador: ''
+  };
+
+  this.mensajeErrorGrupo = '';
+
+  let formularioValido = true;
+
+  if (!this.grado) {
+
+    this.erroresGrupo.grado =
+      'Debe seleccionar un grado.';
+
+    formularioValido = false;
+  }
+
+  if (!this.identificador) {
+
+    this.erroresGrupo.identificador =
+      'Debe seleccionar un identificador.';
+
+    formularioValido = false;
+  }
+
+  return formularioValido;
+}
+
+existeGrupoConMismoNombre(
+  nombreGrupo: string
+): boolean {
+
+  return this.grupos.some(
+    grupo =>
+      grupo.nombre?.toUpperCase() ===
+      nombreGrupo.toUpperCase()
+  );
+} 
+
 crearGrupo() {
 
-  if (!this.directorId) return;
+  if (!this.validarFormularioGrupo()) {
+
+    return;
+  }
+
+  const nombreGrupo =
+  this.obtenerNombreGrupo();
+
+  if (this.existeGrupoConMismoNombre(nombreGrupo)) {
+
+   this.mensajeErrorGrupo =
+  `No es posible crear el grupo porque ${nombreGrupo} ya existe.`;
+
+    return;
+  }
 
   this.gruposService
 
     .crearGrupo(
-      this.nombre,
+      nombreGrupo,
       this.grado,
       this.directorId
     )
@@ -198,21 +357,76 @@ crearGrupo() {
 
         this.mostrarModal = false;
 
+        this.nombre = '';
+        this.grado = '';
+        this.identificador = '';
+        this.directorId = null;
+
+        this.mensajeErrorGrupo = '';
+
+        this.erroresGrupo = {
+          grado: '',
+          identificador: ''
+        };
+
+        this.cargarGrupos();
+
         this.cdr.detectChanges();
-
-        this.gruposService
-
-          this.cargarGrupos();
       },
 
       error: (error) => {
 
         console.error(error);
+
+        this.mensajeErrorGrupo =
+          error.error?.mensaje ||
+          error.error?.message ||
+          'No fue posible crear el grupo. Verifica la información ingresada.';
+
+        this.cdr.detectChanges();
       }
     });
 }
 
+obtenerNombreGrupo(): string {
+
+  if (!this.grado || !this.identificador) {
+
+    return '';
+  }
+
+  const mapaGrados: any = {
+    'Transición': '0',
+    'Primero': '1',
+    'Segundo': '2',
+    'Tercero': '3',
+    'Cuarto': '4',
+    'Quinto': '5',
+    'Sexto': '6',
+    'Séptimo': '7',
+    'Octavo': '8',
+    'Noveno': '9',
+    'Décimo': '10',
+    'Once': '11'
+  };
+
+  return `${mapaGrados[this.grado]}-${this.identificador}`;
+}
+
+obtenerIdentificadorDesdeNombre(
+  nombre: string
+): string {
+
+  if (!nombre) return '';
+
+  const partes = nombre.split('-');
+
+  return partes[1] || '';
+} 
+
 editarGrupo(grupo: any) {
+
+  this.mensajeErrorGrupo = '';
 
   this.grupoSeleccionado = grupo;
 
@@ -229,6 +443,9 @@ editarGrupo(grupo: any) {
   this.grado =
     grupo.grado;
 
+  this.identificador =
+  this.obtenerIdentificadorDesdeNombre(grupo.nombre);
+
   this.directorId =
     grupo.directorDocenteId;
 
@@ -237,18 +454,42 @@ editarGrupo(grupo: any) {
 
 actualizarGrupo() {
 
-  if (
-    !this.grupoEditandoId ||
-    !this.directorId
-  ) return;
+if (!this.activoEditando) {
+  return;
+}
+
+if (!this.grupoEditandoId) return;
+
+if (!this.validarFormularioGrupo()) {
+  return;
+}
+
+const nombreGrupo =
+  this.obtenerNombreGrupo();
+
+  const existeOtroGrupoConMismoNombre =
+  this.grupos.some(
+    grupo =>
+      grupo.id !== this.grupoEditandoId &&
+      grupo.nombre?.toUpperCase() ===
+        nombreGrupo.toUpperCase()
+  );
+
+if (existeOtroGrupoConMismoNombre) {
+
+  this.mensajeErrorGrupo =
+    `No es posible actualizar el grupo porque ${nombreGrupo} ya existe.`;
+
+  return;
+}
 
   this.gruposService
 
     .actualizarGrupo(
       this.grupoEditandoId,
-      this.nombre,
+      nombreGrupo,
       this.grado,
-      Number(this.directorId)
+      this.directorId ? Number(this.directorId) : null
     )
 
     .subscribe({
@@ -295,12 +536,27 @@ abrirDetalleGrupo(grupo: any) {
 
   this.grupoSeleccionado = grupo;
 
-  this.seccionGrupo = '';
+  this.seccionGrupo = 'estudiantes';
 
   this.mostrarDetalleGrupo = true;
 
-  this.cargarReportesGrupo();
+  this.cargarEstudiantes();
+
+  this.cdr.detectChanges();
 }
+
+volverAListadoGrupos() {
+
+  this.mostrarDetalleGrupo = false;
+
+  this.grupoSeleccionado = null;
+
+  this.seccionGrupo = 'estudiantes';
+
+  this.cdr.detectChanges();
+}
+
+
 cambiarEstadoLocalGrupo() {
 
   this.activoEditando =
@@ -308,6 +564,8 @@ cambiarEstadoLocalGrupo() {
 }
 
 cerrarModalGrupo() {
+
+  this.mensajeErrorGrupo = '';
 
   this.cargarGrupos();
 
@@ -322,6 +580,8 @@ cerrarModalGrupo() {
   this.nombre = '';
 
   this.grado = '';
+
+  this.identificador = '';
 
   this.directorId = null;
 
@@ -751,5 +1011,31 @@ cargarReportesEstudiantePorId(
   this.reporteObservacionesEstudiante = null;
 
   this.cargarReportesEstudiante();
+}
+
+abrirModalGrupo() {
+
+  this.modoEdicion = false;
+
+  this.grupoEditandoId = null;
+
+  this.grupoSeleccionado = null;
+
+  this.nombre = '';
+
+  this.grado = '';
+
+  this.identificador = '';
+
+  this.directorId = null;
+
+  this.mensajeErrorGrupo = '';
+
+  this.erroresGrupo = {
+    grado: '',
+    identificador: ''
+  };
+
+  this.mostrarModal = true;
 }
 }
