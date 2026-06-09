@@ -20,14 +20,89 @@
           Docentes
         </h1>
 
-        <button
-        (click)="mostrarModal = true"
-        class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
-        >
-        + Nuevo docente
-        </button>
+        @if (usuario?.rol === 'ADMINISTRATIVO') {
 
-      </div>
+          <button
+            (click)="abrirModalDocente()"
+            class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl"
+          >
+            + Nuevo docente
+          </button>
+
+        }
+
+        </div>
+  
+<div class="bg-white rounded-2xl shadow p-5 mb-8">
+
+  <p class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+    Filtrar
+  </p>
+
+  <div class="grid grid-cols-12 gap-4 items-center">
+
+    <input
+      [(ngModel)]="filtroTextoDocente"
+      (input)="aplicarFiltrosDocentes()"
+      type="text"
+      placeholder="Nombre, correo, documento o teléfono"
+      class="col-span-7 border p-3 rounded-xl"
+    />
+
+    <select
+      [(ngModel)]="filtroEstadoDocente"
+      (change)="aplicarFiltrosDocentes()"
+      class="col-span-2 border p-3 rounded-xl"
+    >
+
+      <option value="TODOS">
+        Todos los estados
+      </option>
+
+      <option value="ACTIVO">
+        Activos
+      </option>
+
+      <option value="INACTIVO">
+        Inactivos
+      </option>
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroGrupoDirigido"
+      (change)="aplicarFiltrosDocentes()"
+      class="col-span-2 border p-3 rounded-xl"
+    >
+
+      <option value="TODOS">
+        Todos los grupos
+      </option>
+
+      <option value="SIN_GRUPO">
+        Sin grupo dirigido
+      </option>
+
+      <option
+        *ngFor="let grupo of grupos"
+        [value]="grupo.id"
+      >
+        {{ grupo.nombre }}
+      </option>
+
+    </select>
+
+    <button
+      (click)="limpiarFiltrosDocentes()"
+      class="col-span-1 text-blue-600 underline text-sm hover:text-blue-800"
+    >
+      Limpiar
+    </button>
+
+  </div>
+
+</div>
+
 
       <div class="bg-white rounded-2xl shadow overflow-hidden">
 
@@ -57,9 +132,13 @@
                 Grupos dirigidos
               </th>
 
-              <th class="p-4 text-left">
-                Acciones
-              </th>
+              @if (usuario?.rol === 'ADMINISTRATIVO') {
+
+                <th>
+                  Acciones
+                </th>
+
+              }
 
             </tr>
 
@@ -67,10 +146,10 @@
 
           <tbody>
 
-            <tr
-  *ngFor="let docente of docentes"
-  class="border-b"
->
+                        <tr
+            *ngFor="let docente of docentesFiltrados"
+              class="border-b"
+            >
 
   <td class="p-4">
     {{ docente.usuario?.nombre }}
@@ -90,7 +169,7 @@
 
  <td class="p-4">
 
-  <div class="flex flex-wrap gap-2">
+ <div class="flex flex-wrap gap-2 max-w-xs">
 
     @if (
       grupos.some(
@@ -106,11 +185,10 @@
         ) {
 
           <span
-            class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
-          >
-            {{ grupo.nombre }}
-          </span>
-
+          class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-sm font-semibold"
+        >
+          {{ grupo.nombre }}
+        </span>
         }
 
       }
@@ -118,10 +196,10 @@
     } @else {
 
       <span
-        class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-sm"
-      >
-        Sin grupo dirigido
-      </span>
+      class="bg-gray-100 text-gray-500 border border-gray-200 px-3 py-1 rounded-full text-sm"
+    >
+      Sin grupo dirigido
+    </span>
 
     }
 
@@ -129,24 +207,51 @@
 
 </td>
 
+@if (usuario?.rol === 'ADMINISTRATIVO') {
+
   <td class="p-4">
 
     <button
-
-    (click)="editarDocente(docente)"
-
-    class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg transition"
+      (click)="editarDocente(docente)"
+      class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
     >
-    Editar
+      Editar
     </button>
 
   </td>
+
+}
 
 </tr>
 
           </tbody>
 
         </table>
+
+        @if (docentesFiltrados.length === 0) {
+
+  <div
+    class="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center mt-6"
+  >
+
+    <p class="text-lg font-semibold text-gray-600">
+      Docente no encontrado
+    </p>
+
+    <p class="text-sm text-gray-500 mt-2">
+      No se encontró ningún docente que coincida con los filtros seleccionados.
+    </p>
+
+    <button
+      (click)="limpiarFiltrosDocentes()"
+      class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+    >
+      Limpiar búsqueda
+    </button>
+
+  </div>
+
+}
 
       </div>
 
@@ -169,7 +274,7 @@
       </h2>
 
       <button
-        (click)="mostrarModal = false"
+        (click)="cerrarModalDocente()"
         class="text-4xl text-gray-500"
       >
         ×
@@ -187,23 +292,56 @@
 
        <div class="relative">
 
+@if (modoEdicion) {
+
+  <input
+    type="text"
+    [value]="nombreUsuarioEditando"
+    disabled
+    class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-gray-100 shadow-md text-gray-700"
+  />
+
+} @else {
+
   <select
     [(ngModel)]="usuarioId"
+    [disabled]="usuariosDocentes.length === 0"
     class="w-full appearance-none p-4 border border-gray-300 rounded-2xl bg-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
   >
 
     <option [ngValue]="null">
-      Selecciona un docente
+      {{ usuariosDocentes.length === 0
+        ? 'No hay usuarios docentes disponibles'
+        : 'Selecciona un docente'
+      }}
     </option>
 
     <option
       *ngFor="let usuario of usuariosDocentes"
-      [value]="usuario.id"
+      [ngValue]="usuario.id"
     >
       {{ usuario.nombre }}
     </option>
 
   </select>
+
+}
+
+@if (erroresDocente.usuarioId) {
+
+  <p class="text-red-600 text-sm mt-2">
+    {{ erroresDocente.usuarioId }}
+  </p>
+
+}
+
+@if (usuariosDocentes.length === 0 && !modoEdicion) {
+
+  <p class="text-sm text-gray-500 mt-2">
+    Todos los usuarios con rol DOCENTE ya tienen un docente asociado.
+  </p>
+
+}
 
   <div
     class="absolute inset-y-0 right-4 flex items-center pointer-events-none"
@@ -237,12 +375,21 @@
           Documento
         </label>
 
-        <input
-          [(ngModel)]="documento"
-          type="text"
-          class="w-full border p-4 rounded-xl"
-        />
+       <input
+        [(ngModel)]="documento"
+        type="text"
+        (keypress)="soloNumeros($event)"
+        placeholder="Ingresa solo números"
+        class="w-full border p-4 rounded-xl"
+      />
 
+        @if (erroresDocente.documento) {
+
+          <p class="text-red-600 text-sm mt-2">
+            {{ erroresDocente.documento }}
+          </p>
+
+        }
       </div>
 
       <div>
@@ -254,11 +401,28 @@
         <input
           [(ngModel)]="telefono"
           type="text"
+          (keypress)="soloNumeros($event)"
+          placeholder="Ingresa solo números"
           class="w-full border p-4 rounded-xl"
         />
 
+        @if (erroresDocente.telefono) {
+
+          <p class="text-red-600 text-sm mt-2">
+            {{ erroresDocente.telefono }}
+          </p>
+
+        }
+
       </div>
 
+@if (mensajeErrorDocente) {
+
+  <div class="bg-red-100 text-red-700 p-4 rounded-xl text-sm">
+    {{ mensajeErrorDocente }}
+  </div>
+
+}
             <button
         (click)="modoEdicion ? actualizarDocente() : crearDocente()"
         class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
