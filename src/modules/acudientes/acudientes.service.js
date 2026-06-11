@@ -1,61 +1,46 @@
 const prisma = require('../../config/prisma');
 
 const crearAcudiente = async (datos) => {
-  const { nombre, telefono, correo, usuarioId } = datos;
+  const { usuarioId, telefono } = datos;
 
-  let nombreFinal = nombre?.trim();
-  let correoFinal = correo?.trim();
-
-  if (usuarioId) {
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: Number(usuarioId) },
-    });
-
-    if (!usuario) {
-      throw new Error('El usuario no existe');
-    }
-
-    if (usuario.rol !== 'ACUDIENTE') {
-      throw new Error('El usuario debe tener rol ACUDIENTE');
-    }
-
-    if (!usuario.activo) {
-      throw new Error('El usuario está desactivado');
-    }
-
-    if (!nombreFinal) {
-      nombreFinal = usuario.nombre;
-    }
-
-    if (!correoFinal) {
-      correoFinal = usuario.correo;
-    }
-
-    const acudienteExistente = await prisma.acudiente.findUnique({
-      where: {
-        usuarioId: Number(usuarioId),
-      },
-    });
-
-    if (acudienteExistente) {
-      throw new Error('Este usuario ya está asociado a un acudiente');
-    }
+  if (!usuarioId) {
+    throw new Error('El usuarioId es obligatorio');
   }
 
-  if (!nombreFinal) {
-    throw new Error('El nombre del acudiente es obligatorio si no se envía usuarioId');
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      id: Number(usuarioId),
+    },
+  });
+
+  if (!usuario) {
+    throw new Error('El usuario no existe');
   }
 
-  if (!correoFinal) {
-    throw new Error('El correo del acudiente es obligatorio si no se envía usuarioId');
+  if (usuario.rol !== 'ACUDIENTE') {
+    throw new Error('El usuario debe tener rol ACUDIENTE');
+  }
+
+  if (!usuario.activo) {
+    throw new Error('El usuario está desactivado');
+  }
+
+  const acudienteExistente = await prisma.acudiente.findUnique({
+    where: {
+      usuarioId: Number(usuarioId),
+    },
+  });
+
+  if (acudienteExistente) {
+    throw new Error('Este usuario ya está registrado como acudiente');
   }
 
   const acudiente = await prisma.acudiente.create({
     data: {
-      nombre: nombreFinal,
+      usuarioId: Number(usuarioId),
+      nombre: usuario.nombre,
+      correo: usuario.correo,
       telefono,
-      correo: correoFinal,
-      usuarioId: usuarioId ? Number(usuarioId) : null,
     },
     include: {
       usuario: {
@@ -81,7 +66,6 @@ const crearAcudiente = async (datos) => {
 
   return acudiente;
 };
-
 const listarAcudientes = async () => {
   const acudientes = await prisma.acudiente.findMany({
     orderBy: {

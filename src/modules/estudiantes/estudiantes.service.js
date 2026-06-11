@@ -1,13 +1,45 @@
 const prisma = require('../../config/prisma');
 
 const crearEstudiante = async (datos) => {
-  const { nombre, documento, grupoId, usuarioId } = datos;
+  const { usuarioId, documento, grupoId } = datos;
 
-  let nombreFinal = nombre?.trim();
+  if (!usuarioId) {
+    throw new Error('El usuarioId es obligatorio');
+  }
+
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      id: Number(usuarioId),
+    },
+  });
+
+  if (!usuario) {
+    throw new Error('El usuario no existe');
+  }
+
+  if (usuario.rol !== 'ESTUDIANTE') {
+    throw new Error('El usuario debe tener rol ESTUDIANTE');
+  }
+
+  if (!usuario.activo) {
+    throw new Error('El usuario está desactivado');
+  }
+
+  const estudianteExistente = await prisma.estudiante.findUnique({
+    where: {
+      usuarioId: Number(usuarioId),
+    },
+  });
+
+  if (estudianteExistente) {
+    throw new Error('Este usuario ya está registrado como estudiante');
+  }
 
   if (grupoId) {
     const grupo = await prisma.grupo.findUnique({
-      where: { id: Number(grupoId) },
+      where: {
+        id: Number(grupoId),
+      },
     });
 
     if (!grupo) {
@@ -15,38 +47,12 @@ const crearEstudiante = async (datos) => {
     }
   }
 
-  if (usuarioId) {
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: Number(usuarioId) },
-    });
-
-    if (!usuario) {
-      throw new Error('El usuario no existe');
-    }
-
-    if (usuario.rol !== 'ESTUDIANTE') {
-      throw new Error('El usuario debe tener rol ESTUDIANTE');
-    }
-
-    if (!usuario.activo) {
-      throw new Error('El usuario está desactivado');
-    }
-
-    if (!nombreFinal) {
-      nombreFinal = usuario.nombre;
-    }
-  }
-
-  if (!nombreFinal) {
-    throw new Error('El nombre del estudiante es obligatorio si no se envía usuarioId');
-  }
-
   const estudiante = await prisma.estudiante.create({
     data: {
-      nombre: nombreFinal,
+      usuarioId: Number(usuarioId),
+      nombre: usuario.nombre,
       documento,
       grupoId: grupoId ? Number(grupoId) : null,
-      usuarioId: usuarioId ? Number(usuarioId) : null,
     },
     include: {
       grupo: true,
@@ -63,7 +69,7 @@ const crearEstudiante = async (datos) => {
   });
 
   return estudiante;
-}; 
+};
 const listarEstudiantes = async () => {
   const estudiantes = await prisma.estudiante.findMany({
     orderBy: {
