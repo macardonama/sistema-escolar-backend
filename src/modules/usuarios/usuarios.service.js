@@ -196,6 +196,51 @@ const actualizarUsuario = async (id, datos) => {
   return usuarioActualizado;
 };
 
+const actualizarPasswordUsuario = async (id, datos) => {
+  const { password } = datos;
+
+  const passwordLimpio = password?.trim();
+
+  if (!passwordLimpio) {
+    throw new Error('La nueva contraseña es obligatoria');
+  }
+
+  if (passwordLimpio.length < 6) {
+    throw new Error('La contraseña debe tener mínimo 6 caracteres');
+  }
+
+  const usuarioActual = await prisma.usuario.findUnique({
+    where: {
+      id: Number(id),
+    },
+  });
+
+  if (!usuarioActual) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  const passwordEncriptada = await bcrypt.hash(passwordLimpio, 10);
+
+  const usuarioActualizado = await prisma.usuario.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      password: passwordEncriptada,
+    },
+    select: {
+      id: true,
+      nombre: true,
+      correo: true,
+      rol: true,
+      activo: true,
+      actualizadoEn: true,
+    },
+  });
+
+  return usuarioActualizado;
+};
+
 const desactivarUsuario = async (id) => {
   const usuario = await prisma.usuario.update({
     where: {
@@ -242,5 +287,6 @@ module.exports = {
   obtenerUsuarioPorId,
   actualizarUsuario,
   desactivarUsuario,
-  activarUsuario
+  activarUsuario,
+  actualizarPasswordUsuario,
 };

@@ -26,6 +26,13 @@ router.get(
   usuariosController.obtenerUsuarioPorId
 );
 
+router.patch(
+  '/:id/password',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO'),
+  usuariosController.actualizarPasswordUsuario
+);
+
 router.put(
   '/:id',
   verificarToken,

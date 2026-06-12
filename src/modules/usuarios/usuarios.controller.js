@@ -61,6 +61,21 @@ const actualizarUsuario = async (req, res) => {
   }
 };
 
+const actualizarPasswordUsuario = async (req, res) => {
+  try {
+    const usuario = await usuariosService.actualizarPasswordUsuario(req.params.id, req.body);
+
+    res.json({
+      mensaje: 'Contraseña actualizada correctamente',
+      usuario,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 const desactivarUsuario = async (req, res) => {
   try {
     const usuario = await usuariosService.desactivarUsuario(req.params.id);
@@ -98,4 +113,5 @@ module.exports = {
   actualizarUsuario,
   desactivarUsuario,
   activarUsuario,
+  actualizarPasswordUsuario,
 };
