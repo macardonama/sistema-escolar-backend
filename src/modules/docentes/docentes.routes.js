@@ -15,14 +15,14 @@ router.post(
 router.get(
   '/',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE'),
   docentesController.listarDocentes
 );
 
 router.get(
   '/:id',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE'),
   docentesController.obtenerDocentePorId
 );
 

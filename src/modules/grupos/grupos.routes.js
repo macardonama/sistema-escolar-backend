@@ -15,21 +15,21 @@ router.post(
 router.get(
   '/',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE'),
   gruposController.listarGrupos
 );
 
 router.get(
   '/:id',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE'),
   gruposController.obtenerGrupoPorId
 );
 
 router.put(
   '/:id',
   verificarToken,
-  verificarRol('ADMINISTRATIVO'),
+  verificarRol('ADMINISTRATIVO','DIRECTIVO'),
   gruposController.actualizarGrupo
 );
 

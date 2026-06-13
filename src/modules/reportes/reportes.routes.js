@@ -8,28 +8,28 @@ const router = express.Router();
 router.get(
   '/asistencia/grupo/:grupoId',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'DIRECTIVO'),
   reportesController.reporteAsistenciaPorGrupo
 );
 
 router.get(
   '/asistencia/estudiante/:estudianteId',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
   reportesController.reporteAsistenciaPorEstudiante
 );
 
 router.get(
   '/observaciones/estudiante/:estudianteId',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'),
   reportesController.reporteObservacionesPorEstudiante
 );
 
 router.get(
   '/resumen/grupo/:grupoId',
   verificarToken,
-  verificarRol('ADMINISTRATIVO', 'DOCENTE'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO', 'DOCENTE'),
   reportesController.resumenGrupo
 );
 

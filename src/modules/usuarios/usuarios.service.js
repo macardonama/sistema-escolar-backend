@@ -1,5 +1,13 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../../config/prisma');
+const rolesValidos = [
+  'ADMINISTRATIVO',
+  'DIRECTIVO',
+  'DOCENTE',
+  'ESTUDIANTE',
+  'ACUDIENTE',
+  'PSICORIENTADOR',
+];
 
 const crearUsuario = async (datos) => {
   const { nombre, correo, password, rol } = datos;
@@ -25,12 +33,9 @@ const crearUsuario = async (datos) => {
     throw new Error('El rol es obligatorio');
   }
 
-  const rolesValidos = ['ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'];
-
-  if (!rolesValidos.includes(rolLimpio)) {
-    throw new Error('El rol no es válido');
-  }
-
+if (!rolesValidos.includes(rolLimpio)) {
+  throw new Error('El rol no es válido');
+}
   const usuarioExistente = await prisma.usuario.findUnique({
     where: {
       correo: correoLimpio,
@@ -164,10 +169,8 @@ const actualizarUsuario = async (id, datos) => {
       throw new Error('El rol no puede estar vacío');
     }
 
-    const rolesValidos = ['ADMINISTRATIVO', 'DOCENTE', 'ESTUDIANTE', 'ACUDIENTE'];
-
     if (!rolesValidos.includes(rolLimpio)) {
-      throw new Error('El rol no es válido');
+    throw new Error('El rol no es válido');
     }
 
     data.rol = rolLimpio;

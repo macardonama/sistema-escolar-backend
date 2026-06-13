@@ -12,10 +12,12 @@ datasource db {
 }
 
 enum RolUsuario {
+  DIRECTIVO
   ADMINISTRATIVO
   DOCENTE
   ESTUDIANTE
   ACUDIENTE
+  PSICORIENTADOR
 }
 
 enum EstadoAsistencia {
