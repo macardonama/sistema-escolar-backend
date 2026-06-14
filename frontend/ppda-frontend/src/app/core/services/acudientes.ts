@@ -89,7 +89,8 @@ actualizarAcudiente(
 
 asociarEstudiante(
   estudianteId: number,
-  acudienteId: number
+  acudienteId: number,
+  parentesco: string
 ) {
 
   return this.http.post(
@@ -98,7 +99,8 @@ asociarEstudiante(
 
     {
       estudianteId: Number(estudianteId),
-      acudienteId: Number(acudienteId)
+      acudienteId: Number(acudienteId),
+      parentesco
     },
 
     {
@@ -109,4 +111,6 @@ asociarEstudiante(
     }
   );
 }
+
+
 }

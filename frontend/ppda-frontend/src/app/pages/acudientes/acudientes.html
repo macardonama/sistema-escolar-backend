@@ -18,12 +18,12 @@
           Acudientes
         </h1>
 
-        <button
-          (click)="mostrarModal = true"
-          class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
-        >
-          {{ modoEdicion ? 'Editar acudiente' : '+ Nuevo acudiente' }}
-        </button>
+    <button
+  (click)="abrirModalCrearAcudiente()"
+  class="bg-blue-700 text-white px-6 py-3 rounded-xl"
+>
+  + Nuevo acudiente
+</button>
 
       </div>
 
@@ -38,7 +38,6 @@
               <th class="p-4 text-left">Correo</th>
               <th class="p-4 text-left">Teléfono</th>
               <th class="p-4 text-left">Estudiante asociado</th>
-              <th class="p-4 text-left">Parentesco</th>
               <th class="p-4 text-left">Acciones</th>
             </tr>
 
@@ -63,30 +62,42 @@
                 {{ acudiente.telefono }}
               </td>
 
-               <td class="p-4">
+<td class="p-4">
 
-            @if (acudiente.estudiante?.nombre) {
+  <div class="flex flex-wrap gap-2 items-center">
 
-                <span class="font-medium text-gray-700">
-                {{ acudiente.estudiante.nombre }}
-                </span>
+    @if (acudiente.estudiantes?.length > 0) {
 
-            } @else {
+   @for (relacion of acudiente.estudiantes; track relacion.estudianteId) {
 
-                <button
-                (click)="abrirAsociarEstudiante(acudiente)"
-                class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg transition font-medium"
-                >
-                Asociar estudiante
-                </button>
+  <span
+    class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full"
+  >
+    {{ relacion.estudiante?.nombre }}
+    ({{ relacion.parentesco }})
+  </span>
 
-            }
+}
+
+    } @else {
+
+      <span class="text-gray-400">
+        -
+      </span>
+
+    }
+
+    <button
+      (click)="abrirAsociarEstudiante(acudiente)"
+      class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full font-semibold"
+    >
+      + Asociar
+    </button>
+
+  </div>
 
 </td>
 
-                <td class="p-4">
-                {{ acudiente.parentesco || '-' }}
-                </td>
 
               <td class="p-4">
               <button
@@ -120,11 +131,11 @@
     <div class="flex justify-between items-center mb-8">
 
       <h2 class="text-3xl font-bold text-blue-600">
-        Nuevo acudiente
+        {{ modoEdicion ? 'Editar acudiente' : 'Nuevo acudiente' }}
       </h2>
 
       <button
-        (click)="mostrarModal = false"
+        (click)="cerrarModalAcudiente()"
         class="text-4xl text-gray-500"
       >
         ×
@@ -139,6 +150,22 @@
         <label class="block mb-2 font-semibold">
           Usuario acudiente
         </label>
+
+        @if (modoEdicion) {
+
+  <input
+
+    type="text"
+
+    [value]="nombre"
+
+    disabled
+
+    class="w-full border p-4 rounded-xl bg-gray-100 text-gray-500"
+
+  />
+
+} @else {
 
         <select
           [(ngModel)]="usuarioId"
@@ -157,6 +184,7 @@
           </option>
 
         </select>
+      }
 
               @if (erroresAcudiente.usuarioId) {
   <p class="text-red-500 mt-2">
@@ -174,11 +202,13 @@
           Teléfono
         </label>
 
-        <input
+ <input
   [(ngModel)]="telefono"
+  type="text"
   (keypress)="soloNumeros($event)"
+  placeholder="Ingresa solo números"
   class="w-full border p-4 rounded-xl"
->
+/>
 
       @if (erroresAcudiente.telefono) {
   <p class="text-red-500 mt-2">
@@ -194,7 +224,7 @@
         (click)="modoEdicion ? actualizarAcudiente() : crearAcudiente()"
         class="w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-xl"
         >
-        {{ modoEdicion ? 'Actualizar acudiente' : 'Crear acudiente' }}
+         {{ modoEdicion ? 'Actualizar acudiente' : 'Crear acudiente' }}
         </button>
 
     </div>
@@ -213,7 +243,7 @@
 
     <div class="flex justify-between items-center mb-6">
 
-      <h2 class="text-2xl font-bold text-green-700">
+      <h2 class="text-2xl font-bold text-blue-700">
         Asociar estudiante
       </h2>
 
@@ -252,11 +282,43 @@
 
         </select>
 
+        @if (erroresAsociacion.estudianteId) {
+  <p class="text-red-500 mt-2">
+    {{ erroresAsociacion.estudianteId }}
+  </p>
+}
+
       </div>
+
+              <label class="font-semibold">
+  Parentesco
+</label>
+
+<select
+  [(ngModel)]="parentesco"
+  class="w-full mt-2 border rounded-xl p-4"
+>
+  <option value="">Selecciona parentesco</option>
+  <option value="Madre">Madre</option>
+  <option value="Padre">Padre</option>
+  <option value="Abuela">Abuela</option>
+  <option value="Abuelo">Abuelo</option>
+  <option value="Tía">Tía</option>
+  <option value="Tío">Tío</option>
+  <option value="Hermana">Hermana</option>
+  <option value="Hermano">Hermano</option>
+  <option value="Otro">Otro</option>
+</select>
+
+@if (erroresAsociacion.parentesco) {
+  <p class="text-red-500 mt-2">
+    {{ erroresAsociacion.parentesco }}
+  </p>
+}
 
       <button
         (click)="asociarEstudianteAcudiente()"
-        class="w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl"
+        class="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-xl font-semibold"
       >
         Asociar estudiante
       </button>

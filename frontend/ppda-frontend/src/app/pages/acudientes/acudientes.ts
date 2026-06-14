@@ -87,6 +87,11 @@ export class AcudientesComponent implements OnInit {
 
   estudiantes: any[] = [];
 
+  erroresAsociacion = {
+  estudianteId: '',
+  parentesco: ''
+};
+
   toggleSidebar() {
 
     this.mostrarSidebar =
@@ -146,6 +151,8 @@ cargarAcudientes() {
   this.acudientes =
     response.acudientes;
 
+  console.log('Acudientes cargados:', this.acudientes);
+
   this.cdr.detectChanges();
 },
 
@@ -163,12 +170,14 @@ this.erroresAcudiente = {
   telefono: ''
 };
 
+let formularioValido = true;
+
 if (!this.usuarioId) {
 
   this.erroresAcudiente.usuarioId =
     'Debe seleccionar un usuario acudiente';
 
-  return;
+  formularioValido = false;
 }
 
 if (!this.telefono.trim()) {
@@ -176,6 +185,10 @@ if (!this.telefono.trim()) {
   this.erroresAcudiente.telefono =
     'Debe ingresar un teléfono';
 
+  formularioValido = false;
+}
+
+if (!formularioValido) {
   return;
 }
 
@@ -237,10 +250,15 @@ usuarioYaTieneAcudiente(): boolean {
 
 editarAcudiente(acudiente: any) {
 
+  this.limpiarFormularioAcudiente();
+
   this.modoEdicion = true;
 
   this.acudienteEditandoId =
     acudiente.id;
+
+  this.usuarioId =
+    acudiente.usuarioId;
 
   this.nombre =
     acudiente.nombre;
@@ -264,40 +282,37 @@ telefonoDuplicado(): boolean {
 
 actualizarAcudiente() {
 
+  this.erroresAcudiente = {
+    usuarioId: '',
+    telefono: ''
+  };
+
+  if (!this.telefono.trim()) {
+
+    this.erroresAcudiente.telefono =
+      'Debe ingresar un teléfono';
+
+    return;
+  }
+
   if (!this.acudienteEditandoId) return;
 
   this.acudientesService
-
     .actualizarAcudiente(
       this.acudienteEditandoId,
       this.nombre,
       this.telefono,
       this.correo
     )
-
     .subscribe({
-
       next: () => {
 
         this.cargarAcudientes();
 
-        this.mostrarModal = false;
-
-        this.modoEdicion = false;
-
-        this.acudienteEditandoId = null;
-
-        this.nombre = '';
-
-        this.telefono = '';
-
-        this.correo = '';
-
-        this.cdr.detectChanges();
+        this.cerrarModalAcudiente();
       },
 
       error: (error) => {
-
         console.error(error);
       }
     });
@@ -305,62 +320,74 @@ actualizarAcudiente() {
 
 asociarEstudianteAcudiente() {
 
-  console.log('Asociar:', {
-  estudianteId: this.estudianteId,
-  acudienteId: this.acudienteEditandoId
-});
+  this.erroresAsociacion = {
+    estudianteId: '',
+    parentesco: ''
+  };
 
-if (
-  !this.acudienteEditandoId ||
-  !this.estudianteId
-) return;
+  let formularioValido = true;
+
+  if (!this.estudianteId) {
+
+    this.erroresAsociacion.estudianteId =
+      'Debe seleccionar un estudiante';
+
+    formularioValido = false;
+  }
+
+  if (!this.parentesco) {
+
+    this.erroresAsociacion.parentesco =
+      'Debe seleccionar un parentesco';
+
+    formularioValido = false;
+  }
+
+  if (!formularioValido) {
+    return;
+  }
+
+  if (!this.acudienteEditandoId) {
+    return;
+  }
+
+  console.log('Asociar:', {
+    estudianteId: this.estudianteId,
+    acudienteId: this.acudienteEditandoId,
+    parentesco: this.parentesco
+  });
 
   this.acudientesService
 
-    .asociarEstudiante(
-      this.estudianteId,
-      this.acudienteEditandoId,
-    )
+ .asociarEstudiante(
+  Number(this.estudianteId),
+  Number(this.acudienteEditandoId),
+  this.parentesco
+)
 
     .subscribe({
-next: () => {
 
-  const estudianteSeleccionado =
-    this.estudiantes.find(
-      estudiante =>
-        estudiante.id === this.estudianteId
-    );
+      next: () => {
 
-  this.acudientes =
-    this.acudientes.map(acudiente => {
+        this.cargarAcudientes();
 
-      if (acudiente.id === this.acudienteEditandoId) {
+        this.mostrarModalAsociar = false;
 
-        return {
-          ...acudiente,
-          estudiante: estudianteSeleccionado,
-          estudianteId: this.estudianteId
-        };
-      }
+        this.estudianteId = null;
 
-      return acudiente;
-    });
+        this.parentesco = '';
 
-  this.mostrarModalAsociar = false;
-
-  this.estudianteId = null;
-
-  this.parentesco = '';
-
-  this.cdr.detectChanges();
-},
+        this.cdr.detectChanges();
+      },
 
       error: (error) => {
 
-  console.log(error.error);
+        console.log(error.error);
 
-  alert('Ese estudiante ya está asociado a este acudiente');
-}
+        alert(
+          'No fue posible asociar el estudiante al acudiente'
+        );
+      }
     });
 }
 cargarEstudiantes() {
@@ -396,4 +423,35 @@ abrirAsociarEstudiante(acudiente: any) {
 
   this.mostrarModalAsociar = true;
 }
+
+limpiarFormularioAcudiente() {
+
+  this.usuarioId = null;
+  this.telefono = '';
+  this.correo = '';
+  this.nombre = '';
+
+  this.modoEdicion = false;
+  this.acudienteEditandoId = null;
+
+  this.erroresAcudiente = {
+    usuarioId: '',
+    telefono: ''
+  };
+}
+
+abrirModalCrearAcudiente() {
+
+  this.limpiarFormularioAcudiente();
+
+  this.mostrarModal = true;
+}
+
+cerrarModalAcudiente() {
+
+  this.limpiarFormularioAcudiente();
+
+  this.mostrarModal = false;
+}
+
 }
