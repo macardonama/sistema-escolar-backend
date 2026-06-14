@@ -24,6 +24,8 @@ import { AcudientesService } from '../../core/services/acudientes';
 
 import { EstudiantesService } from '../../core/services/estudiantes';
 
+import { GruposService } from '../../core/services/grupos';
+
 @Component({
   selector: 'app-acudientes',
 
@@ -58,6 +60,9 @@ export class AcudientesComponent implements OnInit {
   private cdr =
     inject(ChangeDetectorRef);
 
+  private gruposService =
+  inject(GruposService);
+
   usuariosAcudientes: any[] = [];
 
   acudientes: any[] = [];
@@ -71,6 +76,8 @@ export class AcudientesComponent implements OnInit {
   nombre = '';
 
   modoEdicion = false;
+
+  filtroGrupo = 'TODOS';
 
   erroresAcudiente = {
     usuarioId: '',
@@ -87,6 +94,16 @@ export class AcudientesComponent implements OnInit {
 
   estudiantes: any[] = [];
 
+  filtroTexto = '';
+
+  filtroEstudiante = 'TODOS';
+
+  estudiantesFiltro: any[] = [];
+
+  acudientesFiltrados: any[] = [];
+
+  grupos: any[] = [];
+
   erroresAsociacion = {
   estudianteId: '',
   parentesco: ''
@@ -102,6 +119,7 @@ export class AcudientesComponent implements OnInit {
 
     this.cargarTodo();
     this.cargarEstudiantes();
+    this.cargarGrupos();
 
 }
 
@@ -151,6 +169,19 @@ cargarAcudientes() {
   this.acudientes =
     response.acudientes;
 
+  this.acudientesFiltrados =
+  this.acudientes;
+
+  this.estudiantesFiltro =
+  [...new Map(
+    this.acudientes
+      .flatMap(a => a.estudiantes || [])
+      .map(e => [
+        e.estudiante?.id,
+        e.estudiante
+      ])
+  ).values()];
+
   console.log('Acudientes cargados:', this.acudientes);
 
   this.cdr.detectChanges();
@@ -188,6 +219,20 @@ if (!this.telefono.trim()) {
   formularioValido = false;
 }
 
+const telefonoExiste =
+  this.acudientes.some(
+    acudiente =>
+      acudiente.telefono === this.telefono.trim()
+  );
+
+if (telefonoExiste) {
+
+  this.erroresAcudiente.telefono =
+    'Ya existe un acudiente con este teléfono';
+
+  return;
+}
+
 if (!formularioValido) {
   return;
 }
@@ -223,10 +268,14 @@ if (!formularioValido) {
         this.cdr.detectChanges();
       },
 
-      error: (error) => {
+     error: (error) => {
 
-        console.error(error);
-      }
+  this.erroresAcudiente.usuarioId =
+    error.error?.mensaje ||
+    'No fue posible crear el acudiente';
+
+  this.cdr.detectChanges();
+}
     });
 }
 
@@ -291,7 +340,31 @@ actualizarAcudiente() {
 
     this.erroresAcudiente.telefono =
       'Debe ingresar un teléfono';
+    this.cdr.detectChanges();
 
+    return;
+  }
+
+  if (!/^\d+$/.test(this.telefono.trim())) {
+
+    this.erroresAcudiente.telefono =
+      'El teléfono solo puede contener números';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const telefonoExiste =
+    this.acudientes.some(
+      acudiente =>
+        acudiente.telefono === this.telefono.trim() &&
+        acudiente.id !== this.acudienteEditandoId
+    );
+
+  if (telefonoExiste) {
+
+    this.erroresAcudiente.telefono =
+      'Ya existe un acudiente con este teléfono';
+    this.cdr.detectChanges();
     return;
   }
 
@@ -344,10 +417,12 @@ asociarEstudianteAcudiente() {
   }
 
   if (!formularioValido) {
+    this.cdr.detectChanges();
     return;
   }
 
   if (!this.acudienteEditandoId) {
+    this.cdr.detectChanges();
     return;
   }
 
@@ -454,4 +529,96 @@ cerrarModalAcudiente() {
   this.mostrarModal = false;
 }
 
+cerrarModalAsociar() {
+
+  this.mostrarModalAsociar = false;
+
+  this.estudianteId = null;
+
+  this.parentesco = '';
+
+  this.erroresAsociacion = {
+    estudianteId: '',
+    parentesco: ''
+  };
+}
+aplicarFiltros() {
+
+  const texto =
+    this.filtroTexto.toLowerCase();
+
+  this.acudientesFiltrados =
+    this.acudientes.filter(acudiente => {
+
+      const coincideTexto =
+
+        !texto ||
+
+        acudiente.nombre
+          ?.toLowerCase()
+          .includes(texto) ||
+
+        acudiente.correo
+          ?.toLowerCase()
+          .includes(texto) ||
+
+        acudiente.telefono
+          ?.toString()
+          .includes(texto);
+
+      const coincideEstudiante =
+
+        this.filtroEstudiante === 'TODOS' ||
+
+        acudiente.estudiantes?.some(
+          (relacion: any) =>
+            relacion.estudiante?.id ==
+            this.filtroEstudiante
+        );
+
+      const coincideGrupo =
+  this.filtroGrupo === 'TODOS' ||
+  acudiente.estudiantes?.some(
+    (relacion: any) =>
+      relacion.estudiante?.grupo?.id ==
+      this.filtroGrupo
+  );
+
+      return (
+        coincideTexto &&
+        coincideEstudiante && coincideGrupo
+      );
+    });
+}
+
+limpiarFiltros() {
+
+  this.filtroTexto = '';
+
+  this.filtroEstudiante =
+    'TODOS';
+
+  this.filtroGrupo = 'TODOS';
+
+  this.aplicarFiltros();
+}
+
+cargarGrupos() {
+
+  this.gruposService
+    .listarGrupos()
+    .subscribe({
+      next: (response: any) => {
+
+        this.grupos =
+          response.grupos;
+
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+        console.error(error);
+      }
+    });
+}
 }

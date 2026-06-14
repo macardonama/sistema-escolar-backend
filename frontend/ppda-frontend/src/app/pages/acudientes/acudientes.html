@@ -27,6 +27,65 @@
 
       </div>
 
+     <div class="bg-white rounded-3xl shadow p-8 mb-8">
+
+  <h3 class="text-gray-500 font-bold uppercase mb-6">
+    Filtrar
+  </h3>
+
+  <div class="grid grid-cols-12 gap-4 items-center">
+
+    <input
+      type="text"
+      placeholder="Nombre, correo o teléfono"
+      [(ngModel)]="filtroTexto"
+      (input)="aplicarFiltros()"
+      class="col-span-5 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+    />
+
+    <select
+      [(ngModel)]="filtroEstudiante"
+      (change)="aplicarFiltros()"
+      class="col-span-3 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+    >
+      <option value="TODOS">
+        Todos los estudiantes
+      </option>
+
+      @for (estudiante of estudiantesFiltro; track estudiante.id) {
+        <option [value]="estudiante.id">
+          {{ estudiante.nombre }}
+        </option>
+      }
+    </select>
+
+    <select
+      [(ngModel)]="filtroGrupo"
+      (change)="aplicarFiltros()"
+      class="col-span-3 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+    >
+      <option value="TODOS">
+        Todos los grupos
+      </option>
+
+      @for (grupo of grupos; track grupo.id) {
+        <option [value]="grupo.id">
+          {{ grupo.nombre }}
+        </option>
+      }
+    </select>
+
+    <button
+      (click)="limpiarFiltros()"
+      class="col-span-1 text-blue-600 underline text-xl"
+    >
+      Limpiar
+    </button>
+
+  </div>
+
+</div>
+
       <div class="bg-white rounded-2xl shadow overflow-hidden">
 
         <table class="w-full">
@@ -45,10 +104,10 @@
 
           <tbody>
 
-            <tr
-              *ngFor="let acudiente of acudientes"
-              class="border-b"
-            >
+           <tr
+            *ngFor="let acudiente of acudientesFiltrados"
+            class="border-b"
+          >
 
               <td class="p-4">
                 {{ acudiente.nombre }}
@@ -113,6 +172,22 @@
           </tbody>
 
         </table>
+
+        @if (acudientesFiltrados.length === 0) {
+
+  <div class="bg-white rounded-3xl shadow p-10 text-center mt-6">
+
+    <h2 class="text-2xl font-bold text-blue-700 mb-2">
+      No se encontraron acudientes
+    </h2>
+
+    <p class="text-gray-500">
+      No hay acudientes que coincidan con los filtros seleccionados.
+    </p>
+
+  </div>
+
+}
 
       </div>
 
@@ -248,7 +323,7 @@
       </h2>
 
       <button
-        (click)="mostrarModalAsociar = false"
+        (click)="cerrarModalAsociar()"
         class="text-4xl text-gray-500"
       >
         ×
