@@ -69,6 +69,8 @@ export class GruposComponent implements OnInit {
 
   usuario: any = {};
 
+  docenteActual: any = null;
+
   docentes: any[] = [];
 
   mostrarModal = false;
@@ -173,41 +175,36 @@ erroresGrupo = {
       !this.mostrarSidebar;
   }
 
-  ngOnInit(): void {
+ngOnInit(): void {
 
-    const usuarioGuardado =
-  localStorage.getItem('usuario');
+  const usuarioGuardado =
+    localStorage.getItem('usuario');
 
-if (usuarioGuardado) {
+  if (usuarioGuardado) {
 
-  this.usuario =
-    JSON.parse(usuarioGuardado);
-}
+    this.usuario =
+      JSON.parse(usuarioGuardado);
+  }
 
-    this.cargarEstudiantes();
-    this.docentesService
+  this.cargarEstudiantes();
 
-  .listarDocentes()
+  this.docentesService
+    .listarDocentes()
+    .subscribe({
 
-  .subscribe({
+      next: (response: any) => {
 
-    next: (response: any) => {
+        this.docentes =
+          response.docentes;
 
-      console.log(response);
+        this.cargarGrupos();
+      },
 
-      this.docentes =
-        response.docentes;
-    },
+      error: (error) => {
 
-    error: (error) => {
-
-      console.error(error);
-    }
-  });
-
-  this.gruposService
-
-    this.cargarGrupos();
+        console.error(error);
+      }
+    });
 }
 
 limpiarFiltros() {
@@ -224,24 +221,37 @@ limpiarFiltros() {
 cargarGrupos() {
 
   this.gruposService
-
     .listarGrupos()
-
     .subscribe({
 
       next: (response: any) => {
 
-        console.log(response);
+        const todosLosGrupos = response.grupos;
 
-       this.grupos =
-        response.grupos;
+        if (this.usuario?.rol === 'DOCENTE') {
 
-      this.aplicarFiltrosGrupos();
+          this.docenteActual =
+            this.docentes.find(
+              docente =>
+                docente.usuarioId === this.usuario.id
+            );
+
+          this.grupos =
+            todosLosGrupos.filter(
+              (grupo: any) =>
+                grupo.directorDocenteId === this.docenteActual?.id
+            );
+
+        } else {
+
+          this.grupos = todosLosGrupos;
+        }
+
+        this.aplicarFiltrosGrupos();
         this.cdr.detectChanges();
       },
 
       error: (error) => {
-
         console.error(error);
       }
     });
@@ -1037,5 +1047,24 @@ abrirModalGrupo() {
   };
 
   this.mostrarModal = true;
+}
+
+cargarDocentes() {
+
+  this.docentesService
+    .listarDocentes()
+    .subscribe({
+
+      next: (response: any) => {
+
+        this.docentes = response.docentes;
+
+        this.cargarGrupos();
+      },
+
+      error: (error) => {
+        console.error(error);
+      }
+    });
 }
 }

@@ -22,139 +22,164 @@
 
         <button
           class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
-          (click)="mostrarModal = true"
+          (click)="abrirModalEstudiante()"
         >
           + Nuevo estudiante
         </button>
 
+
       </div>
+
+      <div class="bg-white rounded-2xl shadow p-5 mb-8">
+
+  <p class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+    Filtrar
+  </p>
+
+<div class="grid grid-cols-12 gap-4 items-center">
+
+  <input
+    [(ngModel)]="filtroTextoEstudiante"
+    (input)="aplicarFiltrosEstudiantes()"
+    type="text"
+    placeholder="Nombre o documento"
+    class="col-span-4 border p-3 rounded-xl"
+  />
+
+  <select
+    [(ngModel)]="filtroGradoEstudiante"
+    (change)="aplicarFiltrosEstudiantes()"
+    class="col-span-3 border p-3 rounded-xl"
+  >
+
+    <option value="TODOS">
+      Todos los grados
+    </option>
+
+    <option
+      *ngFor="let gradoOpcion of grados"
+      [value]="gradoOpcion"
+    >
+      {{ gradoOpcion }}
+    </option>
+
+  </select>
+
+  <select
+    [(ngModel)]="filtroGrupoEstudiante"
+    (change)="aplicarFiltrosEstudiantes()"
+    class="col-span-3 border p-3 rounded-xl"
+  >
+
+    <option value="TODOS">
+      Todos los grupos
+    </option>
+
+    <option
+      *ngFor="let grupo of grupos"
+      [value]="grupo.id"
+    >
+      {{ grupo.nombre }}
+    </option>
+
+  </select>
+
+  <button
+    (click)="limpiarFiltrosEstudiantes()"
+    class="col-span-2 text-blue-600 underline text-sm hover:text-blue-800"
+  >
+    Limpiar filtros
+  </button>
+
+</div>
+
+</div>
       
 <div class="space-y-6">
 
   <!-- TITULOS -->
 
-  <div class="grid grid-cols-4 px-6 text-blue-700 font-bold text-lg">
+<div class="grid grid-cols-4 px-6 text-blue-700 font-bold text-lg">
 
-    <div>
-      Nombre
-    </div>
+  <div>Nombre</div>
 
-    <div>
-      Grupo
-    </div>
+  <div>Documento</div>
 
-    <div>
-      Información
-    </div>
+  <div>Grupo</div>
 
-    <div class="text-right">
-      Acciones
-    </div>
+  <div class="text-right">Acciones</div>
 
-  </div>
+</div>
 
   <!-- LISTA -->
 
   <div
-    *ngFor="let estudiante of estudiantes"
-    class="bg-white rounded-3xl shadow-md hover:shadow-xl transition p-6"
-  >
+  *ngFor="let estudiante of estudiantesFiltrados"
+  class="bg-white rounded-3xl shadow-md hover:shadow-xl transition p-6"
+>
 
-    <div class="grid grid-cols-4 items-center gap-6">
 
-      <!-- NOMBRE -->
 
-      <div>
+ <div class="grid grid-cols-4 items-center gap-6">
+
+    <!-- NOMBRE -->
+
+    <div>
 
         <h2 class="text-2xl font-bold text-gray-800">
-
           {{
             usuariosEstudiantes.find(
-              usuario =>
-                usuario.id === estudiante.usuarioId
+              usuario => usuario.id === estudiante.usuarioId
             )?.nombre
           }}
-
         </h2>
 
-        <p class="text-gray-500 text-lg mt-2">
+    </div>
 
-          Documento:
-          {{ estudiante.documento }}
+    <div class="text-gray-600 text-lg">
+      {{ estudiante.documento }}
+    </div>
 
-        </p>
+    <!-- GRUPO -->
 
-      </div>
+    <div>
 
-      <!-- GRUPO -->
+      <span
+        class="bg-gray-100 text-gray-700 px-5 py-3 rounded-2xl text-lg font-semibold"
+      >
 
-      <div>
+        {{
+          grupos.find(
+            grupo =>
+              grupo.id === estudiante.grupoId
+          )?.nombre || 'Sin grupo'
+        }}
 
-        <span
-          class="bg-gray-100 text-gray-700 px-5 py-3 rounded-2xl text-lg font-semibold"
-        >
+      </span>
 
-          {{
-            grupos.find(
-              grupo =>
-                grupo.id === estudiante.grupoId
-            )?.nombre
-          }}
+    </div>
 
-        </span>
+    <!-- ACCIONES -->
 
-      </div>
+    <div class="flex justify-end gap-3">
 
-      <!-- INFORMACION -->
+      <button
+        (click)="abrirPerfil(estudiante)"
+        class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-3 rounded-2xl transition font-semibold"
+      >
+        Ver perfil
+      </button>
 
-      <div class="flex flex-wrap gap-3">
-
-        <span
-          class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          Acudientes
-        </span>
-
-        <span
-          class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          Asistencia
-        </span>
-
-        <span
-          class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          Observaciones
-        </span>
-
-        <span
-          class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium"
-        >
-          Reportes
-        </span>
-
-      </div>
-
-      <!-- ACCIONES -->
-
-      <div class="flex justify-end gap-3">
+      @if (usuario?.rol === 'ADMINISTRATIVO') {
 
         <button
-
-          (click)="abrirPerfil(estudiante)"
-
-          class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-3 rounded-2xl transition font-semibold"
-        >
-          Ver perfil
-        </button>
-
-        <button
+          (click)="editarEstudiante(estudiante)"
           class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-2xl transition font-semibold"
         >
           Editar
         </button>
 
-      </div>
+      }
 
     </div>
 
@@ -162,9 +187,28 @@
 
 </div>
 
-    </div>
+@if (estudiantesFiltrados.length === 0) {
+
+  <div class="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center mt-6">
+
+    <p class="text-lg font-semibold text-gray-600">
+      No se encontraron estudiantes
+    </p>
+
+    <p class="text-sm text-gray-500 mt-2">
+      No existen estudiantes que coincidan con los filtros seleccionados.
+    </p>
+
+    <button
+      (click)="limpiarFiltrosEstudiantes()"
+      class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+    >
+      Limpiar filtros
+    </button>
 
   </div>
+
+}
 
 </div>
 
@@ -177,11 +221,11 @@
     <div class="flex justify-between items-center mb-8">
 
       <h2 class="text-3xl font-bold text-blue-600">
-        Nuevo estudiante
+        {{ modoEdicion ? 'Editar estudiante' : 'Nuevo estudiante' }}
       </h2>
 
       <button
-        (click)="mostrarModal = false"
+        (click)="cerrarModalEstudiante()"
         class="text-4xl text-gray-500"
       >
         ×
@@ -198,6 +242,17 @@
     </label>
 
     <div class="relative">
+
+      @if (modoEdicion) {
+
+  <input
+    type="text"
+    [value]="nombreUsuarioEditando"
+    disabled
+    class="w-full p-4 border border-gray-300 rounded-2xl bg-gray-100 shadow-md text-gray-700"
+  />
+
+} @else {
 
       <select
         [(ngModel)]="usuarioId"
@@ -217,7 +272,19 @@
 
       </select>
 
+}
+
+
+
     </div>
+
+          @if (erroresEstudiante.usuarioId) {
+
+  <p class="text-red-600 text-sm mt-2">
+    {{ erroresEstudiante.usuarioId }}
+  </p>
+
+}
 
   </div>
 
@@ -227,13 +294,23 @@
       Documento
     </label>
 
-    <input
-      [(ngModel)]="documento"
-      type="text"
-      class="w-full border p-4 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
+   <input
+  [(ngModel)]="documento"
+  type="text"
+  (keypress)="soloNumeros($event)"
+  placeholder="Ingresa solo números"
+  class="w-full border p-4 rounded-xl"
+/>
+@if (erroresEstudiante.documento) {
 
+  <p class="text-red-600 text-sm mt-2">
+    {{ erroresEstudiante.documento }}
+  </p>
+
+}
   </div>
+
+
 
   <div class="col-span-2">
 
@@ -263,13 +340,21 @@
 
     </div>
 
+    @if (erroresEstudiante.grupoId) {
+
+  <p class="text-red-600 text-sm mt-2">
+    {{ erroresEstudiante.grupoId }}
+  </p>
+
+}
+
   </div>
 
   <button
-    (click)="crearEstudiante()"
+    (click)="modoEdicion ? actualizarEstudiante() : crearEstudiante()"
     class="col-span-2 w-full bg-blue-700 hover:bg-blue-800 text-white p-4 rounded-2xl transition shadow-lg"
   >
-    Crear estudiante
+    {{ modoEdicion ? 'Actualizar estudiante' : 'Crear estudiante' }}
   </button>
 
 </div>
@@ -283,7 +368,7 @@
 
 <div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-  <div class="bg-white w-full max-w-3xl rounded-3xl p-10 shadow-2xl">
+  <div class="bg-white w-full max-w-5xl rounded-3xl p-10 shadow-2xl max-h-[90vh] overflow-y-auto">
 
     <div class="flex justify-between items-center mb-8">
 
@@ -315,114 +400,238 @@
 
     </div>
 
-    <div class="grid grid-cols-2 gap-6">
+    <div class="flex gap-3 mb-8 flex-wrap">
 
-      <div class="bg-gray-50 rounded-2xl p-5">
+      <button
+        (click)="seccionPerfilEstudiante = 'datos'"
+        [class]="seccionPerfilEstudiante === 'datos'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Datos generales
+      </button>
 
-        <p class="text-gray-500 text-sm mb-1">
-          Estado
-        </p>
+      <button
+        (click)="seccionPerfilEstudiante = 'acudientes'"
+        [class]="seccionPerfilEstudiante === 'acudientes'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Acudientes
+      </button>
 
-        <p class="text-lg font-semibold text-green-600">
-          Activo
-        </p>
+      <button
+        (click)="seccionPerfilEstudiante = 'observaciones'"
+        [class]="seccionPerfilEstudiante === 'observaciones'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Observaciones
+      </button>
 
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Documento
-        </p>
-
-        <p class="text-lg font-semibold">
-
-          {{ estudianteSeleccionado.documento }}
-
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Grupo
-        </p>
-
-        <p class="text-lg font-semibold">
-
-          {{
-            grupos.find(
-              grupo =>
-                grupo.id === estudianteSeleccionado.grupoId
-            )?.nombre
-          }}
-
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Edad
-        </p>
-
-        <p class="text-lg font-semibold text-gray-700">
-          Pendiente
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Fecha ingreso institución
-        </p>
-
-        <p class="text-lg font-semibold text-gray-700">
-          Pendiente
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Dirección
-        </p>
-
-        <p class="text-lg font-semibold text-gray-700">
-          Pendiente
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Teléfono
-        </p>
-
-        <p class="text-lg font-semibold text-gray-700">
-          Pendiente
-        </p>
-
-      </div>
-
-      <div class="bg-gray-50 rounded-2xl p-5">
-
-        <p class="text-gray-500 text-sm mb-1">
-          Barrio
-        </p>
-
-        <p class="text-lg font-semibold text-gray-700">
-          Pendiente
-        </p>
-
-      </div>
+      <button
+        (click)="seccionPerfilEstudiante = 'asistencias'"
+        [class]="seccionPerfilEstudiante === 'asistencias'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Asistencias
+      </button>
 
     </div>
+
+    @if (seccionPerfilEstudiante === 'datos') {
+
+      <div class="grid grid-cols-2 gap-6">
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Estado
+          </p>
+
+@if (estudianteSeleccionado?.usuario?.activo) {
+
+  <p class="text-lg font-semibold text-green-600">
+    Activo
+  </p>
+
+} @else {
+
+  <p class="text-lg font-semibold text-red-600">
+    Inactivo
+  </p>
+
+}
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Documento
+          </p>
+
+          <p class="text-lg font-semibold">
+            {{ estudianteSeleccionado.documento }}
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Grupo
+          </p>
+
+          <p class="text-lg font-semibold">
+
+            {{
+              grupos.find(
+                grupo =>
+                  grupo.id === estudianteSeleccionado.grupoId
+              )?.nombre || 'Sin grupo'
+            }}
+
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Discapacidad
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado.discapacidad || 'No registrada' }}
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Edad
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            Pendiente
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Fecha de nacimiento
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado.fechaNacimiento || 'Pendiente' }}
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Lugar de nacimiento
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado.lugarNacimiento || 'Pendiente' }}
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Fecha ingreso institución
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            Pendiente
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Dirección
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            Pendiente
+          </p>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+
+          <p class="text-gray-500 text-sm mb-1">
+            Barrio
+          </p>
+
+          <p class="text-lg font-semibold text-gray-700">
+            Pendiente
+          </p>
+
+        </div>
+
+      </div>
+
+    }
+
+    @if (seccionPerfilEstudiante === 'acudientes') {
+
+      <div class="bg-gray-50 rounded-2xl p-8 text-center">
+
+        <h3 class="text-2xl font-bold text-gray-800 mb-3">
+          Acudientes
+        </h3>
+
+        <p class="text-gray-500">
+          Aquí se mostrarán los acudientes asociados al estudiante.
+        </p>
+
+      </div>
+
+    }
+
+    @if (seccionPerfilEstudiante === 'observaciones') {
+
+      <div class="bg-gray-50 rounded-2xl p-8 text-center">
+
+        <h3 class="text-2xl font-bold text-gray-800 mb-3">
+          Observaciones
+        </h3>
+
+        <p class="text-gray-500">
+          Aquí se mostrará el historial de observaciones del estudiante.
+        </p>
+
+      </div>
+
+    }
+
+    @if (seccionPerfilEstudiante === 'asistencias') {
+
+      <div class="bg-gray-50 rounded-2xl p-8 text-center">
+
+        <h3 class="text-2xl font-bold text-gray-800 mb-3">
+          Asistencias
+        </h3>
+
+        <p class="text-gray-500">
+          Aquí se mostrará el historial de asistencias del estudiante.
+        </p>
+
+      </div>
+
+    }
 
   </div>
 

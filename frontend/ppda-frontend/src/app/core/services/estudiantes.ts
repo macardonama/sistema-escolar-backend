@@ -27,22 +27,21 @@ export class EstudiantesService {
     );
   }
 
-  crearEstudiante(
-  nombre: string,
+crearEstudiante(
+  usuarioId: number,
   documento: string,
-  grupoId: number,
-  usuarioId: number
-) {
+  grupoId: number
+){
 
     return this.http.post(
 
       this.apiUrl,
 
       {
-        nombre,
+        usuarioId,
         documento,
         grupoId,
-        usuarioId
+        
       },
 
       {
@@ -53,4 +52,31 @@ export class EstudiantesService {
       }
     );
   }
+
+actualizarEstudiante(
+  id: number,
+  documento: string,
+  grupoId: number,
+  activo: boolean
+) {
+
+  const token =
+    localStorage.getItem('token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
+  const body = {
+    documento,
+    grupoId,
+    activo
+  };
+
+  return this.http.put(
+    `${this.apiUrl}/${id}`,
+    body,
+    { headers }
+  );
+}
 }

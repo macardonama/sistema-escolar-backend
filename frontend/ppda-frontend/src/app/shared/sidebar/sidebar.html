@@ -41,10 +41,6 @@
       <a routerLink="/acudientes" class="hover:bg-blue-600 p-3 rounded-lg transition">
         Acudientes
       </a>
-
-      <a routerLink="/analitica" class="hover:bg-blue-600 p-3 rounded-lg transition">
-        Analítica
-      </a>
     }
 
    @if (usuario?.rol === 'DOCENTE') {
@@ -53,25 +49,13 @@
     Mis grupos
   </a>
 
-  <a routerLink="/estudiantes" class="hover:bg-blue-600 p-3 rounded-lg transition">
-    Estudiantes
-  </a>
-
-  <a routerLink="/asistencias" class="hover:bg-blue-600 p-3 rounded-lg transition">
-    Asistencias
-  </a>
-
   <a routerLink="/docentes" class="hover:bg-blue-600 p-3 rounded-lg transition">
         Lista de Docentes
   </a>
 
-  <a routerLink="/observaciones" class="hover:bg-blue-600 p-3 rounded-lg transition">
-    Observaciones
-  </a>
-
-  <a routerLink="/reportes" class="hover:bg-blue-600 p-3 rounded-lg transition">
-    Reportes
-  </a>
+   <a routerLink="/mi-asistencia" class="hover:bg-blue-600 p-3 rounded-lg transition">
+        Mis cursos
+   </a>
 }
 
     @if (usuario?.rol === 'ESTUDIANTE') {
@@ -81,16 +65,9 @@
       </a>
 
       <a routerLink="/mi-asistencia" class="hover:bg-blue-600 p-3 rounded-lg transition">
-        Mi asistencia
+        Mis cursos
       </a>
 
-      <a routerLink="/mis-observaciones" class="hover:bg-blue-600 p-3 rounded-lg transition">
-        Mis observaciones
-      </a>
-
-      <a routerLink="/mis-reportes" class="hover:bg-blue-600 p-3 rounded-lg transition">
-        Mis reportes
-      </a>
     }
 
     @if (usuario?.rol === 'ACUDIENTE') {

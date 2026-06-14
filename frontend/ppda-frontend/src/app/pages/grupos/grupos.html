@@ -22,12 +22,16 @@
     Grupos
   </h1>
 
+@if (usuario?.rol === 'ADMINISTRATIVO') {
+
   <button
     (click)="abrirModalGrupo()"
     class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl"
   >
     + Nuevo grupo
   </button>
+
+}
 
 </div>
 
@@ -57,23 +61,26 @@
 
     </select>
 
-    <select
-      [(ngModel)]="filtroDirector"
-      (change)="aplicarFiltrosGrupos()"
-      class="border p-3 rounded-xl"
+<div *ngIf="usuario?.rol !== 'DOCENTE'">
+
+  <select
+    [(ngModel)]="filtroDirector"
+    (change)="aplicarFiltrosGrupos()"
+  >
+    <option value="TODOS">
+      Todos los docentes
+    </option>
+
+    <option
+      *ngFor="let docente of docentes"
+      [value]="docente.id"
     >
-      <option value="TODOS">
-        Todos los docentes
-      </option>
+      {{ docente.usuario?.nombre }}
+    </option>
 
-      <option
-        *ngFor="let docente of docentes"
-        [value]="docente.id"
-      >
-        {{ docente.usuario?.nombre }}
-      </option>
+  </select>
 
-    </select>
+</div>
 
     <select
       [(ngModel)]="filtroEstado"

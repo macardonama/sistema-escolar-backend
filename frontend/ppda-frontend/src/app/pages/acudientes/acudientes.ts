@@ -72,6 +72,13 @@ export class AcudientesComponent implements OnInit {
 
   modoEdicion = false;
 
+  erroresAcudiente = {
+    usuarioId: '',
+    telefono: ''
+  };
+
+  mensajeExito = '';
+
   acudienteEditandoId: number | null = null;
 
   estudianteId: number | null = null;
@@ -151,8 +158,24 @@ cargarAcudientes() {
 
 crearAcudiente() {
 
-  if (!this.usuarioId) {
-  console.log('Falta seleccionar usuario');
+this.erroresAcudiente = {
+  usuarioId: '',
+  telefono: ''
+};
+
+if (!this.usuarioId) {
+
+  this.erroresAcudiente.usuarioId =
+    'Debe seleccionar un usuario acudiente';
+
+  return;
+}
+
+if (!this.telefono.trim()) {
+
+  this.erroresAcudiente.telefono =
+    'Debe ingresar un teléfono';
+
   return;
 }
 
@@ -194,6 +217,24 @@ crearAcudiente() {
     });
 }
 
+soloNumeros(event: KeyboardEvent) {
+
+  const tecla = event.key;
+
+  if (!/[0-9]/.test(tecla)) {
+
+    event.preventDefault();
+  }
+}
+
+usuarioYaTieneAcudiente(): boolean {
+
+  return this.acudientes.some(
+    acudiente =>
+      acudiente.usuarioId === this.usuarioId
+  );
+}
+
 editarAcudiente(acudiente: any) {
 
   this.modoEdicion = true;
@@ -211,6 +252,14 @@ editarAcudiente(acudiente: any) {
     acudiente.correo;
 
   this.mostrarModal = true;
+}
+
+telefonoDuplicado(): boolean {
+
+  return this.acudientes.some(
+    acudiente =>
+      acudiente.telefono === this.telefono
+  );
 }
 
 actualizarAcudiente() {

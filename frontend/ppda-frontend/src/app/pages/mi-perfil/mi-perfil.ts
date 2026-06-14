@@ -29,6 +29,8 @@ export class MiPerfilComponent implements OnInit {
 
   usuario: any = {};
 
+  seccionMiPerfil = 'datos';
+
   ngOnInit(): void {
 
     this.authService.obtenerPerfil()

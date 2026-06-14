@@ -82,6 +82,23 @@ filtroEstadoDocente = 'TODOS';
 
 filtroGrupoDirigido = 'TODOS';
 
+filtroGradoDocente = 'TODOS';
+
+grados = [
+  'Transición',
+  'Primero',
+  'Segundo',
+  'Tercero',
+  'Cuarto',
+  'Quinto',
+  'Sexto',
+  'Séptimo',
+  'Octavo',
+  'Noveno',
+  'Décimo',
+  'Once'
+];
+
 mensajeErrorDocente = '';
 
   toggleSidebar() {
@@ -160,22 +177,22 @@ aplicarFiltrosDocentes() {
       const texto =
         this.filtroTextoDocente.toLowerCase();
 
-          const coincideTexto =
-        !texto ||
-        docente.usuario?.nombre
-          ?.toLowerCase()
-          .includes(texto) ||
-        docente.usuario?.correo
-          ?.toLowerCase()
-          .includes(texto) ||
-        docente.documento
-          ?.toString()
-          .toLowerCase()
-          .includes(texto) ||
-        docente.telefono
-          ?.toString()
-          .toLowerCase()
-          .includes(texto);
+ const coincideTexto =
+  !texto ||
+  docente.usuario?.nombre?.toLowerCase().includes(texto) ||
+  docente.usuario?.correo?.toLowerCase().includes(texto) ||
+  docente.telefono?.toString().includes(texto) ||
+  (
+    this.usuario?.rol === 'ADMINISTRATIVO' &&
+    docente.documento?.toString().includes(texto)
+  );
+
+const coincideGrado =
+  this.filtroGradoDocente === 'TODOS' ||
+  gruposDirigidos.some(
+    grupo =>
+      grupo.grado === this.filtroGradoDocente
+  );
 
       const activoDocente =
         docente.usuario?.activo ?? docente.activo;
@@ -194,7 +211,7 @@ aplicarFiltrosDocentes() {
       return (
       coincideTexto &&
       coincideEstado &&
-      coincideGrupo
+      coincideGrupo && coincideGrado
     );
     });
 
@@ -208,6 +225,8 @@ limpiarFiltrosDocentes() {
   this.filtroEstadoDocente = 'TODOS';
 
   this.filtroGrupoDirigido = 'TODOS';
+
+  this.filtroGradoDocente = 'TODOS';
 
   this.aplicarFiltrosDocentes();
 }

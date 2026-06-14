@@ -24,6 +24,14 @@ export class DashboardComponent implements OnInit {
 
   usuario: any = {};
 
+  mostrarSidebar = true;
+
+toggleSidebar() {
+
+  this.mostrarSidebar =
+    !this.mostrarSidebar;
+}
+
   ngOnInit(): void {
 
     this.authService.obtenerPerfil()
