@@ -40,4 +40,10 @@ router.post(
   acudientesController.asociarEstudiante
 );
 
+router.delete(
+  '/desasociar-estudiante',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO'),
+  acudientesController.desasociarEstudiante
+);
 module.exports = router;

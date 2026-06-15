@@ -85,10 +85,26 @@ const asociarEstudiante = async (req, res) => {
   }
 };
 
+const desasociarEstudiante = async (req, res) => {
+  try {
+    const relacion = await acudientesService.desasociarEstudiante(req.body);
+
+    res.json({
+      mensaje: 'Estudiante desasociado del acudiente correctamente',
+      relacion,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   crearAcudiente,
   listarAcudientes,
   obtenerAcudientePorId,
   actualizarAcudiente,
   asociarEstudiante,
+  desasociarEstudiante,
 };

@@ -200,10 +200,58 @@ const asociarEstudiante = async (datos) => {
   return relacion;
 };
 
+const desasociarEstudiante = async (datos) => {
+  const { estudianteId, acudienteId } = datos;
+
+  if (!estudianteId || !acudienteId) {
+    throw new Error('estudianteId y acudienteId son obligatorios');
+  }
+
+  const estudiante = await prisma.estudiante.findUnique({
+    where: {
+      id: Number(estudianteId),
+    },
+  });
+
+  if (!estudiante) {
+    throw new Error('El estudiante no existe');
+  }
+
+  const acudiente = await prisma.acudiente.findUnique({
+    where: {
+      id: Number(acudienteId),
+    },
+  });
+
+  if (!acudiente) {
+    throw new Error('El acudiente no existe');
+  }
+
+  const relacion = await prisma.estudianteAcudiente.findFirst({
+    where: {
+      estudianteId: Number(estudianteId),
+      acudienteId: Number(acudienteId),
+    },
+  });
+
+  if (!relacion) {
+    throw new Error('El estudiante no está asociado a este acudiente');
+  }
+
+  await prisma.estudianteAcudiente.delete({
+    where: {
+      id: relacion.id,
+    },
+  });
+
+  return relacion;
+};
+
 module.exports = {
   crearAcudiente,
   listarAcudientes,
   obtenerAcudientePorId,
   actualizarAcudiente,
   asociarEstudiante,
+  desasociarEstudiante,
 };
