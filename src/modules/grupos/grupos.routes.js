@@ -36,8 +36,14 @@ router.put(
 router.patch(
   '/:id/desactivar',
   verificarToken,
-  verificarRol('ADMINISTRATIVO'),
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO'),
   gruposController.desactivarGrupo
 );
 
+router.patch(
+  '/:id/activar',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO', 'DIRECTIVO'),
+  gruposController.activarGrupo
+);
 module.exports = router;

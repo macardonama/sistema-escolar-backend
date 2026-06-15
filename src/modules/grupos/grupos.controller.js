@@ -76,10 +76,26 @@ const desactivarGrupo = async (req, res) => {
   }
 };
 
+const activarGrupo = async (req, res) => {
+  try {
+    const grupo = await gruposService.activarGrupo(req.params.id);
+
+    res.json({
+      mensaje: 'Grupo activado correctamente',
+      grupo,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   crearGrupo,
   listarGrupos,
   obtenerGrupoPorId,
   actualizarGrupo,
   desactivarGrupo,
+  activarGrupo,
 };

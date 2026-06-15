@@ -112,10 +112,24 @@ const desactivarGrupo = async (id) => {
   return grupo;
 };
 
+const activarGrupo = async (id) => {
+  const grupo = await prisma.grupo.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      activo: true,
+    },
+  });
+
+  return grupo;
+};
+
 module.exports = {
   crearGrupo,
   listarGrupos,
   obtenerGrupoPorId,
   actualizarGrupo,
   desactivarGrupo,
+  activarGrupo,
 };
