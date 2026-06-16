@@ -58,11 +58,31 @@ const obtenerPerfil = async (usuarioId) => {
       activo: true,
       creadoEn: true,
       actualizadoEn: true,
+      estudiante: {
+        select: {
+          id: true,
+          documento: true,
+          grupoId: true,
+          grupo: {
+            select: {
+              id: true,
+              nombre: true,
+              grado: true,
+              activo: true,
+            },
+          },
+        },
+      },
     },
   });
 
   if (!usuario) {
     throw new Error('Usuario no encontrado');
+  }
+
+  if (usuario.rol !== 'ESTUDIANTE') {
+    const { estudiante, ...usuarioSinEstudiante } = usuario;
+    return usuarioSinEstudiante;
   }
 
   return usuario;
