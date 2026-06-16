@@ -27,9 +27,9 @@
 
       </div>
 
-     <div class="bg-white rounded-3xl shadow p-8 mb-8">
+<div class="bg-white rounded-3xl shadow p-6 mb-8">
 
-  <h3 class="text-gray-500 font-bold uppercase mb-6">
+  <h3 class="text-gray-500 font-bold uppercase mb-4">
     Filtrar
   </h3>
 
@@ -40,44 +40,34 @@
       placeholder="Nombre, correo o teléfono"
       [(ngModel)]="filtroTexto"
       (input)="aplicarFiltros()"
-      class="col-span-5 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+      class="col-span-5 border border-black rounded-xl px-4 py-3 text-base"
     />
 
     <select
       [(ngModel)]="filtroEstudiante"
       (change)="aplicarFiltros()"
-      class="col-span-3 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+      class="col-span-3 border border-black rounded-xl px-4 py-3 text-base"
     >
-      <option value="TODOS">
-        Todos los estudiantes
-      </option>
-
+      <option value="TODOS">Todos los estudiantes</option>
       @for (estudiante of estudiantesFiltro; track estudiante.id) {
-        <option [value]="estudiante.id">
-          {{ estudiante.nombre }}
-        </option>
+        <option [value]="estudiante.id">{{ estudiante.nombre }}</option>
       }
     </select>
 
     <select
       [(ngModel)]="filtroGrupo"
       (change)="aplicarFiltros()"
-      class="col-span-3 border-2 border-black rounded-2xl px-6 py-4 text-xl"
+      class="col-span-3 border border-black rounded-xl px-4 py-3 text-base"
     >
-      <option value="TODOS">
-        Todos los grupos
-      </option>
-
+      <option value="TODOS">Todos los grupos</option>
       @for (grupo of grupos; track grupo.id) {
-        <option [value]="grupo.id">
-          {{ grupo.nombre }}
-        </option>
+        <option [value]="grupo.id">{{ grupo.nombre }}</option>
       }
     </select>
 
     <button
       (click)="limpiarFiltros()"
-      class="col-span-1 text-blue-600 underline text-xl"
+      class="col-span-1 text-blue-600 underline text-base"
     >
       Limpiar
     </button>

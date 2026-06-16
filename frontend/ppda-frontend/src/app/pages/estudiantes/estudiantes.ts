@@ -24,6 +24,12 @@ import { UsuariosService } from '../../core/services/usuarios';
 
 import { GruposService } from '../../core/services/grupos';
 
+import { AcudientesService } from '../../core/services/acudientes';
+
+import { AsistenciasService } from '../../core/services/asistencias';
+
+import { ObservacionesService } from '../../core/services/observaciones';
+
 @Component({
   selector: 'app-estudiantes',
   standalone: true,
@@ -54,6 +60,15 @@ private gruposService =
 
 private cdr =
   inject(ChangeDetectorRef);
+
+private acudientesService =
+  inject(AcudientesService);
+
+private asistenciasService =
+  inject(AsistenciasService);
+
+private observacionesService =
+  inject(ObservacionesService);
 
 estudiantes: any[] = [];
 
@@ -86,6 +101,15 @@ estudianteEditandoId: number | null = null;
 estadoEstudiante = true;
 
 nombreUsuarioEditando = '';
+
+acudientes: any[] = [];
+acudientesEstudiante: any[] = [];
+
+asistencias: any[] = [];
+asistenciasEstudiante: any[] = [];
+
+observaciones: any[] = [];
+observacionesEstudiante: any[] = [];
 
 filtroGrupoEstudiante = 'TODOS';
 
@@ -134,6 +158,18 @@ mensajeErrorEstudiante = '';
 
     this.estudiantes =
       response.estudiantes;
+
+    const usuarioGuardado =
+
+      localStorage.getItem('usuario');
+
+    if (usuarioGuardado) {
+
+      this.usuario =
+
+        JSON.parse(usuarioGuardado);
+
+    }
 
       console.log(this.estudiantes);
     this.aplicarFiltrosEstudiantes();
@@ -254,6 +290,8 @@ ngOnInit(): void {
 
   this.cargarTodo();
 
+  this.cargarAcudientes();
+
   const usuarioGuardado =
   localStorage.getItem('usuario');
 
@@ -262,6 +300,20 @@ if (usuarioGuardado) {
   this.usuario =
     JSON.parse(usuarioGuardado);
 }
+}
+
+cargarAcudientes() {
+
+  this.acudientesService
+    .listarAcudientes()
+    .subscribe({
+      next: (response: any) => {
+        this.acudientes = response.acudientes;
+      },
+      error: (error) => {
+        console.error(error);
+      }
+    });
 }
 
 crearEstudiante() {
@@ -392,12 +444,50 @@ validarFormularioEstudiante(): boolean {
 
 abrirPerfil(estudiante: any) {
 
-  this.estudianteSeleccionado =
-    estudiante;
-
-  this.mostrarPerfil = true;
+  this.estudianteSeleccionado = estudiante;
 
   this.seccionPerfilEstudiante = 'datos';
+
+  this.acudientesEstudiante =
+    this.acudientes.filter(
+      acudiente =>
+        acudiente.estudiantes?.some(
+          (relacion: any) =>
+            relacion.estudianteId === estudiante.id
+        )
+    );
+
+  this.asistenciasService
+    .listarAsistenciasPorGrupo(estudiante.grupoId)
+    .subscribe({
+      next: (response: any) => {
+
+        this.asistenciasEstudiante =
+          response.asistencias.filter(
+            (asistencia: any) =>
+              asistencia.estudianteId === estudiante.id
+          );
+
+        this.cdr.detectChanges();
+      }
+    });
+
+  this.observacionesService
+    .listarObservacionesPorGrupo(estudiante.grupoId)
+    .subscribe({
+      next: (response: any) => {
+
+        this.observacionesEstudiante =
+          response.observaciones.filter(
+            (observacion: any) =>
+              observacion.estudianteId === estudiante.id
+          );
+
+        this.cdr.detectChanges();
+      }
+    });
+
+  this.mostrarPerfil = true;
 }
 
 editarEstudiante(estudiante: any) {

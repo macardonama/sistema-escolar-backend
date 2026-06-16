@@ -14,6 +14,7 @@ import { EstudiantesService } from '../../core/services/estudiantes';
 import { AsistenciasService } from '../../core/services/asistencias';
 import { ObservacionesService } from '../../core/services/observaciones';
 import { ReportesService } from '../../core/services/reportes';
+import { AcudientesService } from '../../core/services/acudientes';
 
 @Component({
   selector: 'app-grupos',
@@ -39,12 +40,17 @@ export class GruposComponent implements OnInit {
   private estudiantesService =
   inject(EstudiantesService);
 
+  private acudientesService =
+  inject(AcudientesService);
+
   estudiantes: any[] = [];
 
   private asistenciasService =
   inject(AsistenciasService);
 
   asistenciasGrupo: any[] = [];
+
+  asistenciasEstudiante: any[] = [];
 
   seccionGrupo = 'estudiantes';
 
@@ -132,6 +138,8 @@ erroresGrupo = {
 
   observacionAsistencia = '';
 
+  observacionesEstudiante: any[] = [];
+
   modoEdicionAsistencia = false;
 
   asistenciaEditandoId: number | null = null;
@@ -168,6 +176,16 @@ erroresGrupo = {
 
   reporteAsistenciaEstudiante: any = null;
 
+  mostrarPerfilEstudiante = false;
+
+  estudianteSeleccionado: any = null;
+
+  seccionPerfilEstudiante = 'datos';
+
+  acudientes: any[] = [];
+
+  acudientesEstudiante: any[] = [];
+
   reporteObservacionesEstudiante: any = null;
   toggleSidebar() {
 
@@ -185,6 +203,8 @@ ngOnInit(): void {
     this.usuario =
       JSON.parse(usuarioGuardado);
   }
+
+  this.cargarAcudientes();
 
   this.cargarEstudiantes();
 
@@ -549,6 +569,10 @@ abrirDetalleGrupo(grupo: any) {
   this.seccionGrupo = 'estudiantes';
 
   this.mostrarDetalleGrupo = true;
+
+  this.cargarAsistenciasGrupo();
+
+  this.cargarObservacionesGrupo();
 
   this.cargarEstudiantes();
 
@@ -1062,6 +1086,66 @@ cargarDocentes() {
         this.cargarGrupos();
       },
 
+      error: (error) => {
+        console.error(error);
+      }
+    });
+}
+
+abrirPerfilEstudiante(estudiante: any) {
+
+  console.log('Estudiante:', estudiante);
+
+  console.log(
+
+  'Asistencias estudiante:',
+
+  this.asistenciasEstudiante
+
+);
+
+  console.log(
+  'Observaciones estudiante:',
+  this.observacionesEstudiante
+);
+
+  this.estudianteSeleccionado = estudiante;
+
+  this.seccionPerfilEstudiante = 'datos';
+
+  this.mostrarPerfilEstudiante = true;
+
+  this.acudientesEstudiante =
+  this.acudientes.filter(
+    acudiente =>
+      acudiente.estudiantes?.some(
+        (relacion: any) =>
+          relacion.estudianteId === estudiante.id
+      )
+  );
+
+  this.asistenciasEstudiante =
+  this.asistenciasGrupo.filter(
+    asistencia =>
+      asistencia.estudianteId === estudiante.id
+  );
+
+ this.observacionesEstudiante =
+  this.observacionesGrupo.filter(
+    (observacion: any) =>
+      observacion.estudianteId === estudiante.id
+  );
+}
+
+cargarAcudientes() {
+
+  this.acudientesService
+    .listarAcudientes()
+    .subscribe({
+      next: (response: any) => {
+
+        this.acudientes = response.acudientes;
+      },
       error: (error) => {
         console.error(error);
       }

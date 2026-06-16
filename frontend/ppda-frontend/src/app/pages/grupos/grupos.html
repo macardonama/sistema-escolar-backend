@@ -66,6 +66,7 @@
   <select
     [(ngModel)]="filtroDirector"
     (change)="aplicarFiltrosGrupos()"
+    class="w-full border p-3 rounded-xl"
   >
     <option value="TODOS">
       Todos los docentes
@@ -371,6 +372,10 @@
                 Documento
               </th>
 
+              <th class="p-4 text-left">
+                Acciones
+              </th>
+
             </tr>
 
           </thead>
@@ -390,6 +395,15 @@
 
               <td class="p-4">
                 {{ estudiante.documento }}
+              </td>
+
+              <td class="p-4">
+                <button
+                  (click)="abrirPerfilEstudiante(estudiante)"
+                  class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-xl font-semibold"
+                >
+                  Ver perfil
+                </button>
               </td>
 
             </tr>
@@ -1244,4 +1258,393 @@
 
 }
 
+@if (mostrarPerfilEstudiante) {
+
+  <div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div class="bg-white w-full max-w-5xl rounded-3xl p-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <div>
+          <h2 class="text-4xl font-bold text-blue-700">
+            {{ estudianteSeleccionado?.nombre }}
+          </h2>
+
+          <p class="text-gray-500 mt-2">
+            Perfil del estudiante
+          </p>
+        </div>
+
+        <button
+          (click)="mostrarPerfilEstudiante = false"
+          class="text-4xl text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="flex gap-4 mb-8">
+
+        <button
+          (click)="seccionPerfilEstudiante = 'datos'"
+          class="bg-blue-700 text-white px-6 py-3 rounded-2xl font-semibold"
+        >
+          Datos generales
+        </button>
+
+        <button
+          (click)="seccionPerfilEstudiante = 'acudientes'"
+          class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+        >
+          Acudientes
+        </button>
+
+        <button
+          (click)="seccionPerfilEstudiante = 'observaciones'"
+          class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+        >
+          Observaciones
+        </button>
+
+        <button
+          (click)="seccionPerfilEstudiante = 'asistencias'"
+          class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+        >
+          Asistencias
+        </button>
+
+      </div>
+
+      @if (seccionPerfilEstudiante === 'datos') {
+
+        <div class="grid grid-cols-2 gap-6">
+
+          <div class="bg-gray-50 rounded-2xl p-5">
+            <p class="text-gray-500">Documento</p>
+            <p class="text-xl font-semibold">
+              {{ estudianteSeleccionado?.documento }}
+            </p>
+          </div>
+
+          <div class="bg-gray-50 rounded-2xl p-5">
+            <p class="text-gray-500">Grupo</p>
+            <p class="text-xl font-semibold">
+              {{ grupoSeleccionado?.nombre }}
+            </p>
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}
+@if (mostrarPerfilEstudiante) {
+
+<div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+  <div class="bg-white w-full max-w-5xl rounded-3xl p-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+    <div class="flex justify-between items-center mb-8">
+
+      <div>
+
+        <h2 class="text-4xl font-bold text-blue-700">
+          {{ estudianteSeleccionado?.nombre }}
+        </h2>
+
+        <p class="text-gray-500 mt-2">
+          Perfil del estudiante
+        </p>
+
+      </div>
+
+      <button
+        (click)="mostrarPerfilEstudiante = false"
+        class="text-4xl text-gray-400 hover:text-gray-600 transition"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="flex gap-3 mb-8 flex-wrap">
+
+      <button
+        (click)="seccionPerfilEstudiante = 'datos'"
+        [class]="seccionPerfilEstudiante === 'datos'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Datos generales
+      </button>
+
+      <button
+        (click)="seccionPerfilEstudiante = 'acudientes'"
+        [class]="seccionPerfilEstudiante === 'acudientes'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Acudientes
+      </button>
+
+      <button
+        (click)="seccionPerfilEstudiante = 'observaciones'"
+        [class]="seccionPerfilEstudiante === 'observaciones'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Observaciones
+      </button>
+
+      <button
+        (click)="seccionPerfilEstudiante = 'asistencias'"
+        [class]="seccionPerfilEstudiante === 'asistencias'
+          ? 'bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold'
+          : 'bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-semibold'"
+      >
+        Asistencias
+      </button>
+
+    </div>
+
+    @if (seccionPerfilEstudiante === 'datos') {
+
+      <div class="grid grid-cols-2 gap-6">
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Estado</p>
+
+          @if (estudianteSeleccionado?.usuario?.activo) {
+            <p class="text-lg font-semibold text-green-600">Activo</p>
+          } @else {
+            <p class="text-lg font-semibold text-red-600">Inactivo</p>
+          }
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Documento</p>
+          <p class="text-lg font-semibold">
+            {{ estudianteSeleccionado?.documento }}
+          </p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Grupo</p>
+          <p class="text-lg font-semibold">
+            {{ grupoSeleccionado?.nombre || 'Sin grupo' }}
+          </p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Discapacidad</p>
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado?.discapacidad || 'No registrada' }}
+          </p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Edad</p>
+          <p class="text-lg font-semibold text-gray-700">Pendiente</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Fecha de nacimiento</p>
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado?.fechaNacimiento || 'Pendiente' }}
+          </p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Lugar de nacimiento</p>
+          <p class="text-lg font-semibold text-gray-700">
+            {{ estudianteSeleccionado?.lugarNacimiento || 'Pendiente' }}
+          </p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Fecha ingreso institución</p>
+          <p class="text-lg font-semibold text-gray-700">Pendiente</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Dirección</p>
+          <p class="text-lg font-semibold text-gray-700">Pendiente</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5">
+          <p class="text-gray-500 text-sm mb-1">Barrio</p>
+          <p class="text-lg font-semibold text-gray-700">Pendiente</p>
+        </div>
+
+      </div>
+    }
+
+ @if (seccionPerfilEstudiante === 'acudientes') {
+
+  <div class="bg-gray-50 rounded-2xl p-8">
+
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
+      Acudientes
+    </h3>
+
+    @if (acudientesEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (acudiente of acudientesEstudiante; track acudiente.id) {
+
+          <div class="bg-white rounded-2xl p-5 border">
+
+            <p class="text-lg font-bold text-gray-800">
+              {{ acudiente.nombre }}
+            </p>
+
+            <p class="text-gray-500">
+              Parentesco:
+              {{
+                acudiente.estudiantes?.find(
+                  relacion =>
+                    relacion.estudianteId === estudianteSeleccionado.id
+                )?.parentesco || 'No registrado'
+              }}
+            </p>
+
+            <p class="text-gray-500">
+              {{ acudiente.correo }}
+            </p>
+
+            <p class="text-gray-500">
+              Teléfono: {{ acudiente.telefono }}
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-gray-500 text-center">
+        Este estudiante no tiene acudientes asociados.
+      </p>
+
+    }
+
+  </div>
+
+}
+
+@if (seccionPerfilEstudiante === 'observaciones') {
+
+  <div class="bg-gray-50 rounded-2xl p-8">
+
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
+      Observaciones
+    </h3>
+
+    @if (observacionesEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (observacion of observacionesEstudiante; track observacion.id) {
+
+          <div class="bg-white border rounded-2xl p-5">
+
+            <p class="font-bold text-gray-800 mb-2">
+              {{ observacion.tipo }}
+            </p>
+
+            <p class="text-gray-600 mb-3">
+              {{ observacion.descripcion }}
+            </p>
+
+            <p class="text-sm text-gray-400">
+              {{ observacion.creadoEn | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-center text-gray-500">
+        No hay observaciones registradas para este estudiante.
+      </p>
+
+    }
+
+  </div>
+
+}
+
+@if (seccionPerfilEstudiante === 'asistencias') {
+
+  <div class="bg-gray-50 rounded-2xl p-8">
+
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
+      Asistencias
+    </h3>
+
+    @if (asistenciasEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (asistencia of asistenciasEstudiante; track asistencia.id) {
+
+          <div class="bg-white rounded-2xl p-5 border flex justify-between items-center">
+
+            <div>
+              <p class="font-semibold text-gray-800">
+                {{ asistencia.fecha | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+
+              <p class="text-gray-500">
+                Registro de asistencia
+              </p>
+            </div>
+
+            <span
+              class="px-4 py-2 rounded-full font-semibold"
+              [ngClass]="{
+                'bg-green-100 text-green-700': asistencia.estado === 'PRESENTE',
+                'bg-yellow-100 text-yellow-700': asistencia.estado === 'TARDE',
+                'bg-red-100 text-red-700': asistencia.estado === 'AUSENTE'
+              }"
+            >
+              {{ asistencia.estado }}
+            </span>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-gray-500 text-center">
+        No hay asistencias registradas para este estudiante.
+      </p>
+
+    }
+
+  </div>
+
+}
+
+  </div>
+
+</div>
+
+}
 

@@ -32,6 +32,13 @@
         Perfil del estudiante
       </p>
 
+      <p class="mt-4 text-xl text-gray-600">
+  Grupo:
+  <span class="font-semibold text-gray-900">
+    {{ estudiante?.grupo?.nombre || 'Sin grupo' }}
+  </span>
+</p>
+
 @if (usuario?.activo) {
 
   <span
@@ -144,17 +151,57 @@
 
 }
 
-@if (seccionMiPerfil === 'acudientes') {
+ @if (seccionMiPerfil === 'acudientes') {
 
-  <div class="bg-white rounded-3xl shadow p-8">
+  <div class="bg-gray-50 rounded-2xl p-8">
 
-    <h2 class="text-3xl font-bold mb-6">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
       Acudientes
-    </h2>
+    </h3>
 
-    <p class="text-gray-500">
-      Aquí se mostrarán los acudientes asociados al estudiante.
-    </p>
+    @if (acudientesEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (acudiente of acudientesEstudiante; track acudiente.id) {
+
+          <div class="bg-white rounded-2xl p-5 border">
+
+            <p class="text-lg font-bold text-gray-800">
+              {{ acudiente.nombre }}
+            </p>
+
+            <p class="text-gray-500">
+              Parentesco:
+              {{
+                acudiente.estudiantes?.find(
+                  relacion =>
+                    relacion.estudianteId === estudiante?.id
+                )?.parentesco || 'No registrado'
+              }}
+            </p>
+
+            <p class="text-gray-500">
+              {{ acudiente.correo }}
+            </p>
+
+            <p class="text-gray-500">
+              Teléfono: {{ acudiente.telefono }}
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-gray-500 text-center">
+        Este estudiante no tiene acudientes asociados.
+      </p>
+
+    }
 
   </div>
 
@@ -162,36 +209,104 @@
 
 @if (seccionMiPerfil === 'observaciones') {
 
-  <div class="bg-white rounded-3xl shadow p-8">
+  <div class="bg-gray-50 rounded-2xl p-8">
 
-    <h2 class="text-3xl font-bold mb-6">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
       Observaciones
-    </h2>
+    </h3>
 
- <p class="text-gray-500">
-  Esta información estará disponible próximamente.
-</p>
+    @if (observacionesEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (observacion of observacionesEstudiante; track observacion.id) {
+
+          <div class="bg-white border rounded-2xl p-5">
+
+            <p class="font-bold text-gray-800 mb-2">
+              {{ observacion.tipo }}
+            </p>
+
+            <p class="text-gray-600 mb-3">
+              {{ observacion.descripcion }}
+            </p>
+
+            <p class="text-sm text-gray-400">
+              {{ observacion.creadoEn | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-center text-gray-500">
+        No hay observaciones registradas para este estudiante.
+      </p>
+
+    }
 
   </div>
 
 }
 
-@if (seccionMiPerfil === 'asistencias') {
+@if (seccionMiPerfil=== 'asistencias') {
 
-  <div class="bg-white rounded-3xl shadow p-8">
+  <div class="bg-gray-50 rounded-2xl p-8">
 
-    <h2 class="text-3xl font-bold mb-6">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">
       Asistencias
-    </h2>
+    </h3>
 
-  <p class="text-gray-500">
-  Esta información estará disponible próximamente.
-</p>
+    @if (asistenciasEstudiante.length > 0) {
+
+      <div class="space-y-4">
+
+        @for (asistencia of asistenciasEstudiante; track asistencia.id) {
+
+          <div class="bg-white rounded-2xl p-5 border flex justify-between items-center">
+
+            <div>
+              <p class="font-semibold text-gray-800">
+                {{ asistencia.fecha | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+
+              <p class="text-gray-500">
+                Registro de asistencia
+              </p>
+            </div>
+
+            <span
+              class="px-4 py-2 rounded-full font-semibold"
+              [ngClass]="{
+                'bg-green-100 text-green-700': asistencia.estado === 'PRESENTE',
+                'bg-yellow-100 text-yellow-700': asistencia.estado === 'TARDE',
+                'bg-red-100 text-red-700': asistencia.estado === 'AUSENTE'
+              }"
+            >
+              {{ asistencia.estado }}
+            </span>
+
+          </div>
+
+        }
+
+      </div>
+
+    } @else {
+
+      <p class="text-gray-500 text-center">
+        No hay asistencias registradas para este estudiante.
+      </p>
+
+    }
 
   </div>
 
 }
-
     </div>
 
   </div>
