@@ -2,7 +2,7 @@
 
 Backend para sistema escolar institucional construido con **Node.js**, **Express**, **PostgreSQL** y **Prisma**.
 
-El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acudientes, áreas académicas, asignaciones académicas, asistencia, observaciones y reportes básicos.
+El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acudientes, áreas académicas, asignaciones académicas, asistencia, observaciones, reportes básicos y dashboard institucional editable.
 
 ---
 
@@ -16,6 +16,8 @@ El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acu
 - Bcrypt para encriptación de contraseñas
 - CORS
 - Dotenv
+- Neon PostgreSQL
+- Render
 
 ---
 
@@ -39,7 +41,10 @@ src/
 │   ├── asignacionesAcademicas/
 │   ├── asistencias/
 │   ├── observaciones/
-│   └── reportes/
+│   ├── reportes/
+│   └── dashboard/
+├── utils/
+│   └── permisos.js
 ├── app.js
 └── server.js
 ```
@@ -48,30 +53,61 @@ src/
 
 ## Roles del sistema
 
-El sistema maneja cuatro roles principales:
+El sistema maneja los siguientes roles:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ESTUDIANTE
 ACUDIENTE
+PSICORIENTADOR
 ```
 
 ### ADMINISTRATIVO
 
-Puede gestionar usuarios, grupos, docentes, estudiantes, acudientes, relaciones, asistencia, observaciones y reportes.
+Rol con permisos globales de administración. Puede gestionar usuarios, grupos, docentes, estudiantes, acudientes, relaciones, áreas, asignaciones académicas, asistencia, observaciones, reportes y dashboard institucional.
+
+### DIRECTIVO
+
+Rol institucional con permisos de gestión académica y actualización de tableros.
+
+Puede, según las rutas actualmente habilitadas:
+
+- Ver grupos.
+- Editar grupos.
+- Activar grupos.
+- Desactivar grupos.
+- Ver docentes.
+- Crear asignaciones académicas.
+- Listar asignaciones académicas.
+- Consultar asignaciones por docente.
+- Editar asignaciones académicas.
+- Consultar reportes / analítica básica.
+- Desasociar estudiantes de acudientes.
+- Gestionar el dashboard institucional.
+
+No se creó un módulo `directivos`, porque por ahora `DIRECTIVO` funciona como rol con permisos sobre módulos funcionales.
 
 ### DOCENTE
 
-Puede consultar grupos, estudiantes, acudientes, registrar asistencias, registrar observaciones y consultar reportes.
+Puede consultar grupos, estudiantes, acudientes, áreas, asignaciones académicas, registrar asistencias, registrar observaciones y consultar reportes, según las reglas de pertenencia configuradas.
 
 ### ESTUDIANTE
 
-Puede consultar información propia en rutas habilitadas.
+Puede consultar información propia en rutas habilitadas. No puede listar todos los estudiantes.
+
+Para facilitar el frontend, `GET /api/auth/perfil` devuelve el registro de estudiante asociado cuando el usuario autenticado tiene rol `ESTUDIANTE`.
 
 ### ACUDIENTE
 
-Puede consultar información asociada a sus acudidos en rutas habilitadas.
+Puede consultar información asociada a sus acudidos en rutas habilitadas, respetando reglas de pertenencia.
+
+### PSICORIENTADOR
+
+Rol creado como base para el futuro módulo de psicoorientación. Por ahora puede autenticarse y ser utilizado por el frontend para mostrar su sección correspondiente en el sidebar.
+
+El alcance funcional del módulo de psicoorientación queda pendiente de definición.
 
 ---
 
@@ -116,6 +152,8 @@ Usuario con rol ACUDIENTE → Acudiente.usuarioId
 Acudiente ↔ Estudiante mediante EstudianteAcudiente
 Docente ↔ Grupo mediante Grupo.directorDocenteId
 ```
+
+---
 
 ## Variables de entorno
 
@@ -179,7 +217,6 @@ http://localhost:3000
 https://sistema-escolar-backend-wlfg.onrender.com
 ```
 
-
 ---
 
 ## Base de datos en la nube
@@ -232,6 +269,21 @@ npm install && npx prisma generate && npx prisma migrate deploy
 npm start
 ```
 
+### Recomendación de puerto para Render
+
+En `src/server.js`, se recomienda escuchar explícitamente en `0.0.0.0`:
+
+```js
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor corriendo en http://${HOST}:${PORT}`);
+});
+```
+
+Esto ayuda a que Render detecte correctamente el servicio web.
+
 ---
 
 ## Usuario administrativo inicial
@@ -265,7 +317,7 @@ npx prisma generate
 ### Ejecutar migraciones en desarrollo
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate dev --name nombre_de_la_migracion
 ```
 
 ### Ejecutar migraciones en producción/Render
@@ -353,6 +405,47 @@ Headers:
 Authorization: Bearer TU_TOKEN
 ```
 
+Respuesta base:
+
+```json
+{
+  "mensaje": "Perfil obtenido correctamente",
+  "usuario": {
+    "id": 1,
+    "nombre": "Mateo Cardona",
+    "correo": "mateo@test.com",
+    "rol": "ADMINISTRATIVO",
+    "activo": true
+  }
+}
+```
+
+Cuando el usuario autenticado tiene rol `ESTUDIANTE`, la respuesta también incluye el registro de estudiante asociado:
+
+```json
+{
+  "mensaje": "Perfil obtenido correctamente",
+  "usuario": {
+    "id": 10,
+    "nombre": "Estudiante Prueba",
+    "correo": "estudiante@test.com",
+    "rol": "ESTUDIANTE",
+    "activo": true,
+    "estudiante": {
+      "id": 5,
+      "documento": "100000001",
+      "grupoId": 1,
+      "grupo": {
+        "id": 1,
+        "nombre": "6-1",
+        "grado": "Sexto",
+        "activo": true
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## Usuarios
@@ -384,9 +477,11 @@ Roles válidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ESTUDIANTE
 ACUDIENTE
+PSICORIENTADOR
 ```
 
 ### Listar usuarios
@@ -436,6 +531,41 @@ Body ejemplo:
 }
 ```
 
+### Actualizar contraseña de usuario
+
+```http
+PATCH /api/usuarios/:id/password
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "password": "654321"
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "mensaje": "Contraseña actualizada correctamente",
+  "usuario": {
+    "id": 3,
+    "nombre": "Estudiante Prueba",
+    "correo": "estudiante@test.com",
+    "rol": "ESTUDIANTE",
+    "activo": true
+  }
+}
+```
+
 ### Desactivar usuario
 
 ```http
@@ -447,6 +577,7 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 ```
+
 ### Activar usuario
 
 ```http
@@ -458,19 +589,6 @@ Roles permitidos:
 ```txt
 ADMINISTRATIVO
 ```
-Respuesta esperada:
-
-{
-  "mensaje": "Usuario activado correctamente",
-  "usuario": {
-    "id": 3,
-    "nombre": "Agujetas",
-    "correo": "agujetas@test.com",
-    "rol": "ESTUDIANTE",
-    "activo": true
-  }
-}
-
 
 ---
 
@@ -517,6 +635,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -530,6 +649,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -543,6 +663,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 ```
 
 Body ejemplo:
@@ -566,6 +687,20 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Activar grupo
+
+```http
+PATCH /api/grupos/:id/activar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
 ```
 
 ---
@@ -606,6 +741,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -619,6 +755,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -659,28 +796,17 @@ Roles permitidos:
 ADMINISTRATIVO
 ```
 
-Body sin usuario asociado:
+Body recomendado:
 
 ```json
 {
-  "nombre": "Estudiante Prueba",
-  "documento": "100000001",
-  "grupoId": 1
-}
-```
-
-Body con usuario asociado:
-
-```json
-{
-  "nombre": "Estudiante Prueba",
   "documento": "100000001",
   "grupoId": 1,
   "usuarioId": 3
 }
 ```
 
-> Si se envía `usuarioId`, el usuario asociado debe tener rol `ESTUDIANTE`. Si no se envía `nombre`, el backend lo toma automáticamente desde el usuario asociado.
+> El usuario asociado debe tener rol `ESTUDIANTE`. El nombre del estudiante se toma automáticamente desde `Usuario.nombre`.
 
 ### Listar estudiantes
 
@@ -726,7 +852,6 @@ Body ejemplo:
 
 ```json
 {
-  "nombre": "Estudiante Actualizado",
   "documento": "100000002",
   "grupoId": 1,
   "activo": true
@@ -761,17 +886,7 @@ Roles permitidos:
 ADMINISTRATIVO
 ```
 
-Body sin usuario asociado:
-
-```json
-{
-  "nombre": "Acudiente Prueba",
-  "telefono": "3005551234",
-  "correo": "acudiente@test.com"
-}
-```
-
-Body con usuario asociado:
+Body recomendado:
 
 ```json
 {
@@ -780,7 +895,7 @@ Body con usuario asociado:
 }
 ```
 
-> Si se envía `usuarioId`, el usuario asociado debe tener rol `ACUDIENTE`. Si no se envían `nombre` ni `correo`, el backend los toma automáticamente desde el usuario asociado.
+> El usuario asociado debe tener rol `ACUDIENTE`. El nombre y correo del acudiente se toman automáticamente desde `Usuario`.
 
 ### Listar acudientes
 
@@ -795,37 +910,7 @@ ADMINISTRATIVO
 DOCENTE
 ```
 
-La respuesta incluye el usuario asociado y las relaciones con estudiantes:
-
-```json
-{
-  "id": 1,
-  "nombre": "Acudiente Prueba",
-  "correo": "acudiente@test.com",
-  "telefono": "3005551234",
-  "usuario": {
-    "id": 4,
-    "nombre": "Acudiente Prueba",
-    "correo": "acudiente@test.com",
-    "rol": "ACUDIENTE",
-    "activo": true
-  },
-  "estudiantes": [
-    {
-      "estudianteId": 1,
-      "parentesco": "Madre",
-      "estudiante": {
-        "id": 1,
-        "nombre": "Estudiante Prueba",
-        "grupo": {
-          "id": 1,
-          "nombre": "6-1"
-        }
-      }
-    }
-  ]
-}
-```
+La respuesta incluye el usuario asociado y las relaciones con estudiantes.
 
 ### Consultar acudiente por ID
 
@@ -859,9 +944,7 @@ Body ejemplo:
 
 ```json
 {
-  "nombre": "Acudiente Actualizado",
-  "telefono": "3115557788",
-  "correo": "nuevoacudiente@test.com"
+  "telefono": "3115557788"
 }
 ```
 
@@ -887,12 +970,35 @@ Body:
 }
 ```
 
-> Un acudiente puede estar asociado a varios estudiantes. La relación se almacena mediante `EstudianteAcudiente`.
+### Desasociar estudiante de acudiente
 
+```http
+DELETE /api/acudientes/desasociar-estudiante
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "estudianteId": 1,
+  "acudienteId": 1
+}
+```
+
+> Este endpoint elimina únicamente la relación en `EstudianteAcudiente`; no elimina el estudiante ni el acudiente.
+
+---
 
 ## Áreas
 
-El módulo de áreas permite registrar las asignaturas o áreas académicas que se imparten en la institución, por ejemplo: Matemáticas, Ciencias Naturales, Religión, Educación Física, entre otras.
+El módulo de áreas permite registrar las asignaturas o áreas académicas que se imparten en la institución.
 
 ### Crear área
 
@@ -975,8 +1081,7 @@ Body ejemplo:
 
 ## Asignaciones académicas
 
-El módulo de asignaciones académicas permite relacionar un docente, un grupo y un área.  
-Esto permite saber qué docente dicta determinada área a un grupo específico.
+El módulo de asignaciones académicas permite relacionar un docente, un grupo y un área.
 
 Ejemplo:
 
@@ -996,6 +1101,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 ```
 
 Body:
@@ -1020,6 +1126,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -1032,24 +1139,6 @@ areaId
 activo
 ```
 
-Ejemplos:
-
-```http
-GET /api/asignaciones-academicas?docenteId=20
-```
-
-```http
-GET /api/asignaciones-academicas?grupoId=1
-```
-
-```http
-GET /api/asignaciones-academicas?areaId=1
-```
-
-```http
-GET /api/asignaciones-academicas?activo=true
-```
-
 ### Consultar asignación académica por ID
 
 ```http
@@ -1060,6 +1149,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -1073,13 +1163,8 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
-```
-
-Ejemplo:
-
-```http
-GET /api/asignaciones-academicas/docente/20
 ```
 
 ### Actualizar asignación académica
@@ -1092,6 +1177,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 ```
 
 Body ejemplo:
@@ -1148,19 +1234,6 @@ EN_CUARTO
 
 > La emoción solo debe enviarse cuando el estado sea `PRESENTE`.
 
-Body con fecha:
-
-```json
-{
-  "estudianteId": 1,
-  "docenteId": 1,
-  "grupoId": 1,
-  "fecha": "2026-05-14",
-  "estado": "AUSENTE",
-  "observacion": "No asistió a clase"
-}
-```
-
 ### Listar asistencias
 
 ```http
@@ -1184,20 +1257,6 @@ docenteId
 grupoId
 fechaInicio
 fechaFin
-```
-
-Ejemplos:
-
-```http
-GET /api/asistencias?grupoId=1
-```
-
-```http
-GET /api/asistencias?fechaInicio=2026-05-01&fechaFin=2026-05-31
-```
-
-```http
-GET /api/asistencias?estudianteId=1
 ```
 
 Reglas por pertenencia:
@@ -1224,8 +1283,6 @@ ESTUDIANTE
 ACUDIENTE
 ```
 
-> La consulta por ID también valida pertenencia. Si el registro pertenece a un estudiante no permitido para el usuario autenticado, responde `403 Forbidden`.
-
 ### Actualizar asistencia
 
 ```http
@@ -1238,17 +1295,6 @@ Roles permitidos:
 ADMINISTRATIVO
 DOCENTE
 ```
-
-Body ejemplo:
-
-```json
-{
-  "estado": "PRESENTE",
-  "emocion": "🙂",
-  "observacion": "Llegó tarde, pero participó en clase"
-}
-```
-
 
 ### Registrar asistencias masivas
 
@@ -1304,27 +1350,7 @@ Llave lógica usada para evitar duplicados:
 estudianteId + asignacionAcademicaId + fecha
 ```
 
-Respuesta esperada:
-
-```json
-{
-  "mensaje": "Asistencias masivas registradas correctamente",
-  "resultado": {
-    "total": 2,
-    "creadas": 2,
-    "actualizadas": 0
-  }
-}
-```
-
-Respuesta cuando un estudiante no pertenece al grupo de la asignación:
-
-```json
-{
-  "mensaje": "Los siguientes estudiantes no pertenecen al grupo de la asignación académica: Nombre Estudiante (ID: 1)"
-}
-```
-
+---
 
 ## Observaciones
 
@@ -1392,16 +1418,6 @@ fechaFin
 tipo
 ```
 
-Ejemplos:
-
-```http
-GET /api/observaciones?estudianteId=1
-```
-
-```http
-GET /api/observaciones?grupoId=1&tipo=GENERAL
-```
-
 Reglas por pertenencia:
 
 - `ADMINISTRATIVO` puede consultar todas las observaciones.
@@ -1409,8 +1425,6 @@ Reglas por pertenencia:
 - `ESTUDIANTE` consulta únicamente sus propias observaciones individuales.
 - `ACUDIENTE` consulta únicamente observaciones individuales de sus estudiantes asociados.
 - Las observaciones generales con `estudianteId: null` no se retornan a `ESTUDIANTE` ni `ACUDIENTE`.
-- Si `ACUDIENTE` o `ESTUDIANTE` consultan un `estudianteId` no permitido, el backend responde `403 Forbidden`.
-- Si `ACUDIENTE` consulta sin `estudianteId`, el backend filtra automáticamente por sus acudidos.
 
 ### Consultar observación por ID
 
@@ -1427,8 +1441,6 @@ ACUDIENTE
 ESTUDIANTE
 ```
 
-> La consulta por ID valida pertenencia. Si la observación es general (`estudianteId: null`), solo `ADMINISTRATIVO` puede consultarla por ID. Si pertenece a un estudiante no permitido para el usuario autenticado, responde `403 Forbidden`.
-
 ### Actualizar observación
 
 ```http
@@ -1442,15 +1454,7 @@ ADMINISTRATIVO
 DOCENTE
 ```
 
-Body ejemplo:
-
-```json
-{
-  "tipo": "INDIVIDUAL",
-  "descripcion": "Observación actualizada",
-  "enviarAcudiente": true
-}
-```
+---
 
 ## Reportes básicos
 
@@ -1464,6 +1468,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -1472,12 +1477,6 @@ Query params opcionales:
 ```txt
 fechaInicio
 fechaFin
-```
-
-Ejemplo:
-
-```http
-GET /api/reportes/asistencia/grupo/1?fechaInicio=2026-05-01&fechaFin=2026-05-31
 ```
 
 ### Reporte de asistencia por estudiante
@@ -1490,6 +1489,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ESTUDIANTE
 ACUDIENTE
@@ -1512,6 +1512,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ESTUDIANTE
 ACUDIENTE
@@ -1535,6 +1536,7 @@ Roles permitidos:
 
 ```txt
 ADMINISTRATIVO
+DIRECTIVO
 DOCENTE
 ```
 
@@ -1547,6 +1549,322 @@ fechaFin
 
 ---
 
+## Dashboard institucional
+
+El módulo de dashboard permite administrar el contenido que se muestra en la pantalla principal institucional.
+
+Incluye:
+
+```txt
+Noticias institucionales
+Próximos eventos
+Galería institucional
+```
+
+### Consultar dashboard público
+
+```http
+GET /api/dashboard
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+PSICORIENTADOR
+```
+
+Devuelve únicamente elementos activos.
+
+Respuesta esperada:
+
+```json
+{
+  "mensaje": "Dashboard obtenido correctamente",
+  "dashboard": {
+    "noticias": [],
+    "eventos": [],
+    "galeria": []
+  }
+}
+```
+
+### Consultar dashboard para edición
+
+```http
+GET /api/dashboard/gestion
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Devuelve elementos activos e inactivos para que el frontend pueda pintar un tablero editable.
+
+### Guardar dashboard completo desde JSON
+
+```http
+PUT /api/dashboard
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Este endpoint permite guardar el dashboard completo desde un tablero editable en el frontend.
+
+Reglas:
+
+- Elementos con `id` se actualizan.
+- Elementos sin `id` se crean.
+- Elementos con `activo: false` se ocultan del dashboard público.
+- Los elementos no se eliminan físicamente.
+
+Body ejemplo:
+
+```json
+{
+  "noticias": [
+    {
+      "id": 1,
+      "titulo": "Semana cultural PPDA",
+      "descripcion": "Actividades académicas, artísticas y deportivas durante la próxima semana.",
+      "color": "azul",
+      "orden": 1,
+      "activo": true
+    },
+    {
+      "titulo": "Escuela de padres",
+      "descripcion": "Encuentro institucional para fortalecer el acompañamiento familiar.",
+      "color": "verde",
+      "orden": 2,
+      "activo": true
+    }
+  ],
+  "eventos": [
+    {
+      "id": 1,
+      "titulo": "Izada de bandera",
+      "fecha": "2026-05-27",
+      "color": "azul",
+      "orden": 1,
+      "activo": true
+    }
+  ],
+  "galeria": [
+    {
+      "id": 1,
+      "titulo": "Actividad académica",
+      "descripcion": "Registro institucional de actividad académica.",
+      "imagenUrl": null,
+      "orden": 1,
+      "activo": true
+    }
+  ]
+}
+```
+
+### Crear noticia
+
+```http
+POST /api/dashboard/noticias
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "titulo": "Semana cultural PPDA",
+  "descripcion": "Actividades académicas, artísticas y deportivas durante la próxima semana.",
+  "color": "azul",
+  "orden": 1
+}
+```
+
+### Actualizar noticia
+
+```http
+PUT /api/dashboard/noticias/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Activar noticia
+
+```http
+PATCH /api/dashboard/noticias/:id/activar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Desactivar noticia
+
+```http
+PATCH /api/dashboard/noticias/:id/desactivar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Crear evento
+
+```http
+POST /api/dashboard/eventos
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "titulo": "Izada de bandera",
+  "fecha": "2026-05-27",
+  "color": "azul",
+  "orden": 1
+}
+```
+
+### Actualizar evento
+
+```http
+PUT /api/dashboard/eventos/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Activar evento
+
+```http
+PATCH /api/dashboard/eventos/:id/activar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Desactivar evento
+
+```http
+PATCH /api/dashboard/eventos/:id/desactivar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Crear elemento de galería
+
+```http
+POST /api/dashboard/galeria
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "titulo": "Actividad académica",
+  "descripcion": "Registro institucional",
+  "imagenUrl": null,
+  "orden": 1
+}
+```
+
+### Actualizar elemento de galería
+
+```http
+PUT /api/dashboard/galeria/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Activar elemento de galería
+
+```http
+PATCH /api/dashboard/galeria/:id/activar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Desactivar elemento de galería
+
+```http
+PATCH /api/dashboard/galeria/:id/desactivar
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+---
+
 ## Flujo recomendado de prueba
 
 1. Ejecutar migraciones.
@@ -1554,19 +1872,116 @@ fechaFin
 3. Iniciar sesión y copiar token.
 4. Crear usuario docente.
 5. Crear docente asociado al usuario docente.
-6. Crear grupo.
-7. Crear estudiante asociado al grupo.
-8. Crear acudiente.
-9. Asociar estudiante con acudiente.
-10. Crear área académica.
-11. Crear asignación académica asociando docente, grupo y área.
-12. Registrar asistencia individual.
-13. Registrar asistencias masivas por asignación académica.
-14. Registrar observación general.
-15. Registrar observación individual.
-16. Consultar reportes básicos.
-17. Probar permisos por pertenencia con usuarios `ESTUDIANTE` y `ACUDIENTE`.
-18. Probar nuevamente usando la URL pública de Render.
+6. Crear usuario estudiante.
+7. Crear estudiante asociado al usuario estudiante.
+8. Crear usuario acudiente.
+9. Crear acudiente asociado al usuario acudiente.
+10. Crear grupo.
+11. Asociar estudiante con grupo.
+12. Asociar estudiante con acudiente.
+13. Crear área académica.
+14. Crear asignación académica asociando docente, grupo y área.
+15. Registrar asistencia individual.
+16. Registrar asistencias masivas por asignación académica.
+17. Registrar observación general.
+18. Registrar observación individual.
+19. Consultar reportes básicos.
+20. Crear usuario directivo.
+21. Probar permisos de directivo en grupos, asignaciones, reportes y dashboard.
+22. Crear usuario psicorientador.
+23. Consultar dashboard desde todos los roles autenticados.
+24. Probar edición del dashboard desde `ADMINISTRATIVO` y `DIRECTIVO`.
+25. Probar permisos por pertenencia con usuarios `ESTUDIANTE` y `ACUDIENTE`.
+26. Probar nuevamente usando la URL pública de Render.
+
+---
+
+## Colección de Postman
+
+El proyecto cuenta con una colección de Postman organizada por módulos para probar los endpoints del backend.
+
+La colección debe incluir carpetas para:
+
+```txt
+General
+Auth
+Usuarios
+Grupos
+Docentes
+Estudiantes
+Acudientes
+Áreas
+Asignaciones Académicas
+Asistencias
+Observaciones
+Reportes
+Dashboard
+```
+
+Variables recomendadas en Postman:
+
+```txt
+base_url
+token
+token_admin
+token_directivo
+token_docente
+token_estudiante
+token_acudiente
+token_psicorientador
+usuario_id
+docente_id
+grupo_id
+estudiante_id
+acudiente_id
+area_id
+asignacion_academica_id
+asistencia_id
+observacion_id
+dashboard_noticia_id
+dashboard_evento_id
+dashboard_galeria_id
+```
+
+La variable `base_url` puede apuntar al servidor local o al backend desplegado en Render:
+
+```txt
+Local:
+http://localhost:3000
+
+Render:
+https://sistema-escolar-backend-wlfg.onrender.com
+```
+
+Para rutas protegidas, la colección utiliza autenticación tipo Bearer Token:
+
+```txt
+Authorization: Bearer {{token}}
+```
+
+Primero se debe ejecutar el endpoint de login para generar y guardar el token en Postman.
+
+> La colección de Postman no se sube al repositorio por seguridad. Se comparte directamente con el equipo de frontend.
+
+---
+
+## Diagrama ERD
+
+El proyecto puede generar un diagrama entidad-relación desde Prisma usando `prisma-erd-generator`.
+
+El diagrama técnico se genera a partir de:
+
+```txt
+prisma/schema.prisma
+```
+
+Comando recomendado:
+
+```bash
+npx prisma generate
+```
+
+El archivo generado puede dejarse en la carpeta `prisma/` como evidencia técnica de la estructura de la base de datos.
 
 ---
 
@@ -1591,130 +2006,69 @@ git push origin main
 ```
 
 ---
-## Colección de Postman
 
-El proyecto cuenta con una colección de Postman organizada por módulos para probar los endpoints del backend.
+## Pendientes actuales y recomendaciones
 
-La colección incluye carpetas para:
+### Alta prioridad
 
-```txt
-General
-Auth
-Usuarios
-Grupos
-Docentes
-Estudiantes
-Acudientes
-Áreas
-Asignaciones Académicas
-Asistencias
-Observaciones
-Reportes
-```
+- Actualizar la colección de Postman con los endpoints nuevos:
+  - `PATCH /api/usuarios/:id/password`
+  - `PATCH /api/grupos/:id/activar`
+  - `DELETE /api/acudientes/desasociar-estudiante`
+  - Endpoints del módulo `dashboard`
+  - `GET /api/dashboard/gestion`
+  - `PUT /api/dashboard`
+- Verificar en Render que las migraciones del módulo dashboard estén aplicadas correctamente.
+- Confirmar que `src/server.js` escuche en `0.0.0.0` para evitar problemas de detección de puerto en Render.
+- Probar `GET /api/auth/perfil` con usuario `ESTUDIANTE` para confirmar que devuelve `usuario.estudiante`.
 
-Variables recomendadas en Postman:
+### Permisos por revisar
 
-```txt
-base_url
-token
-usuario_id
-docente_id
-grupo_id
-estudiante_id
-acudiente_id
-area_id
-asignacion_academica_id
-asistencia_id
-observacion_id
-```
+- Evaluar si `DIRECTIVO` también debe poder listar y consultar estudiantes:
+  - `GET /api/estudiantes`
+  - `GET /api/estudiantes/:id`
+- Evaluar si `DIRECTIVO` también debe poder listar y consultar acudientes:
+  - `GET /api/acudientes`
+  - `GET /api/acudientes/:id`
+- Revisar inconsistencia actual:
+  - `DIRECTIVO` puede desasociar estudiante-acudiente.
+  - `DIRECTIVO` todavía no puede asociar estudiante-acudiente.
+- Evaluar si `DIRECTIVO` debe poder listar y consultar áreas:
+  - `GET /api/areas`
+  - `GET /api/areas/:id`
 
-La variable `base_url` puede apuntar al servidor local o al backend desplegado en Render:
+### Funcionalidades pendientes
 
-```txt
-Local:
-http://localhost:3000
-
-Render:
-https://sistema-escolar-backend-wlfg.onrender.com
-```
-
-Para rutas protegidas, la colección utiliza autenticación tipo Bearer Token:
-
-```txt
-Authorization: Bearer {{token}}
-```
-
-Primero se debe ejecutar el endpoint de login para generar y guardar el token en Postman.
-
-> La colección de Postman no se sube al repositorio por seguridad. Se comparte directamente con el equipo de frontend.
-
-
-Requests nuevos recomendados:
-
-```txt
-Áreas / Crear área
-POST {{base_url}}/api/areas
-
-Áreas / Listar áreas
-GET {{base_url}}/api/areas
-
-Áreas / Consultar área por ID
-GET {{base_url}}/api/areas/{{area_id}}
-
-Áreas / Actualizar área
-PUT {{base_url}}/api/areas/{{area_id}}
-
-Asignaciones Académicas / Crear asignación académica
-POST {{base_url}}/api/asignaciones-academicas
-
-Asignaciones Académicas / Listar asignaciones académicas
-GET {{base_url}}/api/asignaciones-academicas
-
-Asignaciones Académicas / Consultar asignación académica por ID
-GET {{base_url}}/api/asignaciones-academicas/{{asignacion_academica_id}}
-
-Asignaciones Académicas / Listar asignaciones por docente
-GET {{base_url}}/api/asignaciones-academicas/docente/{{docente_id}}
-
-Asignaciones Académicas / Actualizar asignación académica
-PUT {{base_url}}/api/asignaciones-academicas/{{asignacion_academica_id}}
-
-Asistencias / Registrar asistencias masivas
-POST {{base_url}}/api/asistencias/masiva
-```
-
----
-
-## Diagrama ERD
-
-El proyecto puede generar un diagrama entidad-relación desde Prisma usando `prisma-erd-generator`.
-
-El diagrama técnico se genera a partir de:
-
-```txt
-prisma/schema.prisma
-```
-
-Comando recomendado:
-
-```bash
-npx prisma generate
-```
-
-El archivo generado puede dejarse en la carpeta `prisma/` como evidencia técnica de la estructura de la base de datos.
-
----
-
-## Pendientes sugeridos
-
-- Mantener actualizada la colección de Postman cuando se agreguen nuevos endpoints o filtros.
-- Compartir la colección de Postman directamente con el equipo frontend.
-- Probar nuevamente los permisos por rol después de cada cambio sensible.
-- Mejorar mensajes de error para duplicados y restricciones de Prisma.
-- Crear módulo de catálogos para roles, estados de asistencia y tipos de observación.
-- Revisar reportes grupales con filtros por fecha.
-- Actualizar README y Postman después de cada historia cerrada.
+- Crear endpoint de carga masiva de usuarios desde JSON.
+- Crear carga masiva desde Excel o CSV.
+- Crear flujo de recuperación de contraseña desde login:
+  - `POST /api/auth/solicitar-recuperacion`
+  - `POST /api/auth/restablecer-password`
+  - Modelo `PasswordResetToken`
+  - Envío de correo real.
+- Crear módulo de psicoorientación:
+  - Informes PIAR.
+  - Seguimientos.
+  - Remisiones.
+  - Archivos o enlaces de soporte.
+  - Historial por estudiante.
+- Refactorizar observaciones para permitir autores no docentes:
+  - Directivo.
+  - Psicorientador.
+  - Administrativo.
+- Definir manejo real de imágenes de galería:
+  - Por ahora `imagenUrl` guarda una URL.
+  - Falta definir si se usará Cloudinary, S3, Firebase Storage u otro servicio.
+- Agregar pruebas automatizadas.
+- Crear documentación OpenAPI/Swagger si el proyecto crece.
 - Migrar y ordenar el backend dentro del repositorio `ppda-platform/backend` cuando el frontend esté listo.
 - Cambiar la contraseña del usuario administrativo inicial después del primer acceso en producción.
 - Validar el ambiente de producción después de cada despliegue en Render.
-- Agregar pruebas automatizadas.
+
+---
+
+## Estado general del backend
+
+El backend cuenta actualmente con módulos base para gestión institucional, autenticación, permisos por rol, permisos por pertenencia, asistencia individual y masiva, reportes, roles nuevos, directivo, psicorientador y dashboard institucional editable.
+
+La prioridad técnica siguiente es estabilizar documentación, Postman, permisos de `DIRECTIVO`, carga masiva, recuperación de contraseña y módulo de psicoorientación.
