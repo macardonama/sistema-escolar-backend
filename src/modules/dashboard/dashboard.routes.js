@@ -23,6 +23,20 @@ router.get(
   dashboardController.obtenerDashboard
 );
 
+router.get(
+  '/gestion',
+  verificarToken,
+  verificarRol(...ROLES_GESTION_DASHBOARD),
+  dashboardController.obtenerDashboardGestion
+);
+
+router.put(
+  '/',
+  verificarToken,
+  verificarRol(...ROLES_GESTION_DASHBOARD),
+  dashboardController.guardarDashboard
+);
+
 router.post(
   '/noticias',
   verificarToken,

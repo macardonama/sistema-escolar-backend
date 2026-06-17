@@ -232,9 +232,42 @@ const desactivarGaleria = async (req, res) => {
   }
 };
 
+const obtenerDashboardGestion = async (req, res) => {
+  try {
+    const dashboard = await dashboardService.obtenerDashboardGestion();
+
+    res.json({
+      mensaje: 'Dashboard de gestión obtenido correctamente',
+      dashboard,
+    });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener dashboard de gestión',
+      error: error.message,
+    });
+  }
+};
+
+const guardarDashboard = async (req, res) => {
+  try {
+    const dashboard = await dashboardService.guardarDashboard(req.body, req.usuario.id);
+
+    res.json({
+      mensaje: 'Dashboard guardado correctamente',
+      dashboard,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   obtenerDashboard,
+  obtenerDashboardGestion,
   crearNoticia,
+  guardarDashboard,
   actualizarNoticia,
   activarNoticia,
   desactivarNoticia,
