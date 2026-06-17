@@ -190,3 +190,42 @@ model AsignacionAcademica {
 
   @@unique([docenteId, grupoId, areaId])
 }
+
+model DashboardNoticia {
+  id                    Int      @id @default(autoincrement())
+  titulo                String
+  descripcion           String
+  color                 String?  @default("azul")
+  orden                 Int      @default(0)
+  activo                Boolean  @default(true)
+  creadoPorUsuarioId    Int?
+  actualizadoPorUsuarioId Int?
+  creadoEn              DateTime @default(now())
+  actualizadoEn         DateTime @updatedAt
+}
+
+model DashboardEvento {
+  id                    Int      @id @default(autoincrement())
+  titulo                String
+  fecha                 DateTime
+  color                 String?  @default("azul")
+  orden                 Int      @default(0)
+  activo                Boolean  @default(true)
+  creadoPorUsuarioId    Int?
+  actualizadoPorUsuarioId Int?
+  creadoEn              DateTime @default(now())
+  actualizadoEn         DateTime @updatedAt
+}
+
+model DashboardGaleria {
+  id                    Int      @id @default(autoincrement())
+  titulo                String
+  descripcion           String?
+  imagenUrl             String?
+  orden                 Int      @default(0)
+  activo                Boolean  @default(true)
+  creadoPorUsuarioId    Int?
+  actualizadoPorUsuarioId Int?
+  creadoEn              DateTime @default(now())
+  actualizadoEn         DateTime @updatedAt
+}
