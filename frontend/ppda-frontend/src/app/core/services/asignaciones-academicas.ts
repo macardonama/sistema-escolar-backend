@@ -60,4 +60,29 @@ export class AsignacionesAcademicasService {
       }
     );
   }
+
+  actualizarAsignacion(
+  id: number,
+  docenteId: number,
+  grupoId: number,
+  areaId: number,
+  activo: boolean
+) {
+
+  return this.http.put(
+    `${this.apiUrl}/${id}`,
+    {
+      docenteId,
+      grupoId,
+      areaId,
+      activo
+    },
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 }

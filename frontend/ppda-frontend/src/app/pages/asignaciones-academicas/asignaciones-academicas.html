@@ -23,9 +23,104 @@
 
       </div>
 
+    <div class="bg-white rounded-3xl shadow p-6 mb-8">
+
+  <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+    Filtrar
+  </p>
+
+  <div class="grid grid-cols-5 gap-4 items-center">
+
+    <select
+      [(ngModel)]="filtroDocente"
+      (change)="aplicarFiltros()"
+      class="border rounded-xl px-4 py-3"
+    >
+      <option value="TODOS">
+        Todos los docentes
+      </option>
+
+      @for (docente of docentes; track docente.id) {
+
+        <option [value]="docente.id">
+          {{ docente.usuario?.nombre }}
+        </option>
+
+      }
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroGrupo"
+      (change)="aplicarFiltros()"
+      class="border rounded-xl px-4 py-3"
+    >
+      <option value="TODOS">
+        Todos los grupos
+      </option>
+
+      @for (grupo of grupos; track grupo.id) {
+
+        <option [value]="grupo.id">
+          {{ grupo.nombre }}
+        </option>
+
+      }
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroArea"
+      (change)="aplicarFiltros()"
+      class="border rounded-xl px-4 py-3"
+    >
+      <option value="TODOS">
+        Todas las áreas
+      </option>
+
+      @for (area of areas; track area.id) {
+
+        <option [value]="area.id">
+          {{ area.nombre }}
+        </option>
+
+      }
+
+    </select>
+
+    <select
+      [(ngModel)]="filtroEstado"
+      (change)="aplicarFiltros()"
+      class="border rounded-xl px-4 py-3"
+    >
+      <option value="TODOS">
+        Todos los estados
+      </option>
+
+      <option value="ACTIVO">
+        Activas
+      </option>
+
+      <option value="INACTIVO">
+        Inactivas
+      </option>
+
+    </select>
+
+    <button
+      (click)="limpiarFiltros()"
+      class="text-blue-700 underline font-semibold"
+    >
+      Limpiar
+    </button>
+
+  </div>
+
+</div>
+
       <div class="bg-white rounded-3xl shadow overflow-hidden">
 
-        <div class="grid grid-cols-4 bg-blue-700 text-white font-bold p-5">
+        <div class="grid grid-cols-5 bg-blue-700 text-white font-bold p-5">
 
           <div>Docente</div>
 
@@ -35,11 +130,13 @@
 
           <div>Estado</div>
 
+          <div>Acciones</div>
+
         </div>
 
-        @for (asignacion of asignaciones; track asignacion.id) {
+        @for (asignacion of asignacionesFiltradas; track asignacion.id) {
 
-          <div class="grid grid-cols-4 items-center p-5 border-b">
+          <div class="grid grid-cols-5 items-center p-5 border-b">
 
             <div class="font-semibold text-gray-800">
               {{ asignacion.docente?.usuario?.nombre || 'Sin docente' }}
@@ -71,6 +168,15 @@
 
             </div>
 
+            <div>
+            <button
+                (click)="editarAsignacion(asignacion)"
+                class="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-semibold"
+            >
+                Editar
+            </button>
+            </div>
+
           </div>
 
         } @empty {
@@ -98,7 +204,7 @@
       <div class="flex justify-between items-center mb-8">
 
         <h2 class="text-4xl font-bold text-blue-700">
-          Nueva asignación académica
+          {{ modoEdicion ? 'Editar asignación académica' : 'Nueva asignación académica' }}
         </h2>
 
         <button
@@ -215,11 +321,46 @@
 
       </div>
 
+      @if (modoEdicion) {
+
+  <div class="mb-8">
+
+    <label class="block font-bold mb-2">
+      Estado
+    </label>
+
+    <select
+      [(ngModel)]="activo"
+      class="w-full border rounded-2xl px-5 py-4"
+    >
+      <option [ngValue]="true">
+        Activa
+      </option>
+
+      <option [ngValue]="false">
+        Inactiva
+      </option>
+    </select>
+
+  </div>
+
+}
+
+@if (mensajeErrorAsignacion) {
+
+  <div class="mb-6 bg-red-50 text-red-600 px-5 py-4 rounded-2xl font-semibold">
+
+    {{ mensajeErrorAsignacion }}
+
+  </div>
+
+}
+
       <button
-        (click)="crearAsignacion()"
+        (click)="modoEdicion ? actualizarAsignacion() : crearAsignacion()"
         class="w-full bg-blue-700 text-white py-4 rounded-2xl font-semibold text-lg"
       >
-        Crear asignación
+        {{ modoEdicion ? 'Actualizar asignación' : 'Crear asignación' }}
       </button>
 
     </div>

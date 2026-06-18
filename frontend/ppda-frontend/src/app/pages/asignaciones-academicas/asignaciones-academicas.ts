@@ -61,6 +61,21 @@ export class AsignacionesAcademicasComponent implements OnInit {
 
   areaId: number | null = null;
 
+  modoEdicion = false;
+
+  asignacionEditandoId: number | null = null;
+
+  activo = true;
+
+  asignacionesFiltradas: any[] = [];
+
+  filtroDocente = 'TODOS';
+  filtroGrupo = 'TODOS';
+  filtroArea = 'TODOS';
+  filtroEstado = 'TODOS';
+
+  mensajeErrorAsignacion = '';
+
   erroresAsignacion = {
     docenteId: '',
     grupoId: '',
@@ -91,6 +106,9 @@ export class AsignacionesAcademicasComponent implements OnInit {
         next: (response: any) => {
 
           this.asignaciones =
+            response.asignaciones;
+
+          this.asignacionesFiltradas =
             response.asignaciones;
 
           this.cdr.detectChanges();
@@ -158,23 +176,30 @@ export class AsignacionesAcademicasComponent implements OnInit {
         }
       });
   }
+abrirModal() {
 
-  abrirModal() {
+  this.modoEdicion = false;
 
-    this.mostrarModal = true;
+  this.asignacionEditandoId = null;
 
-    this.docenteId = null;
+  this.activo = true;
 
-    this.grupoId = null;
+  this.mostrarModal = true;
 
-    this.areaId = null;
+  this.docenteId = null;
 
-    this.erroresAsignacion = {
-      docenteId: '',
-      grupoId: '',
-      areaId: ''
-    };
-  }
+  this.grupoId = null;
+
+  this.areaId = null;
+
+  this.mensajeErrorAsignacion = '';
+
+  this.erroresAsignacion = {
+    docenteId: '',
+    grupoId: '',
+    areaId: ''
+  };
+}
 
   cerrarModal() {
 
@@ -186,6 +211,8 @@ export class AsignacionesAcademicasComponent implements OnInit {
 
     this.areaId = null;
 
+    this.mensajeErrorAsignacion = '';
+
     this.erroresAsignacion = {
       docenteId: '',
       grupoId: '',
@@ -194,6 +221,8 @@ export class AsignacionesAcademicasComponent implements OnInit {
   }
 
   crearAsignacion() {
+
+    this.mensajeErrorAsignacion = '';
 
     this.erroresAsignacion = {
       docenteId: '',
@@ -245,10 +274,152 @@ export class AsignacionesAcademicasComponent implements OnInit {
           this.cerrarModal();
         },
 
-        error: (error) => {
+      error: (error) => {
 
-          console.error(error);
-        }
+        this.mensajeErrorAsignacion =
+          error.error?.mensaje || 'No se pudo crear la asignación';
+
+        this.cdr.detectChanges();
+      }
       });
   }
+editarAsignacion(asignacion: any) {
+
+  this.modoEdicion = true;
+
+  this.asignacionEditandoId =
+    asignacion.id;
+
+  this.docenteId =
+    asignacion.docenteId;
+
+  this.grupoId =
+    asignacion.grupoId;
+
+  this.areaId =
+    asignacion.areaId;
+
+  this.activo =
+    asignacion.activo;
+
+  this.erroresAsignacion = {
+    docenteId: '',
+    grupoId: '',
+    areaId: ''
+  };
+
+  this.mostrarModal = true;
+}
+
+actualizarAsignacion() {
+
+  this.mensajeErrorAsignacion = '';
+
+  this.erroresAsignacion = {
+    docenteId: '',
+    grupoId: '',
+    areaId: ''
+  };
+
+  let hayErrores = false;
+
+  if (!this.docenteId) {
+
+    this.erroresAsignacion.docenteId =
+      'Debe seleccionar un docente';
+
+    hayErrores = true;
+  }
+
+  if (!this.grupoId) {
+
+    this.erroresAsignacion.grupoId =
+      'Debe seleccionar un grupo';
+
+    hayErrores = true;
+  }
+
+  if (!this.areaId) {
+
+    this.erroresAsignacion.areaId =
+      'Debe seleccionar un área';
+
+    hayErrores = true;
+  }
+
+  if (hayErrores) {
+    return;
+  }
+
+  if (!this.asignacionEditandoId) return;
+
+  this.asignacionesService
+    .actualizarAsignacion(
+      this.asignacionEditandoId,
+      Number(this.docenteId),
+      Number(this.grupoId),
+      Number(this.areaId),
+      this.activo
+    )
+    .subscribe({
+      next: () => {
+
+        this.cargarAsignaciones();
+
+        this.cerrarModal();
+      },
+
+      error: (error) => {
+
+        this.mensajeErrorAsignacion =
+          error.error?.mensaje || 'No se pudo actualizar la asignación';
+
+        this.cdr.detectChanges();
+      }
+    });
+}
+
+aplicarFiltros() {
+
+  this.asignacionesFiltradas =
+    this.asignaciones.filter(
+      asignacion => {
+
+        const coincideDocente =
+          this.filtroDocente === 'TODOS' ||
+          asignacion.docenteId === Number(this.filtroDocente);
+
+        const coincideGrupo =
+          this.filtroGrupo === 'TODOS' ||
+          asignacion.grupoId === Number(this.filtroGrupo);
+
+        const coincideArea =
+          this.filtroArea === 'TODOS' ||
+          asignacion.areaId === Number(this.filtroArea);
+
+        const coincideEstado =
+          this.filtroEstado === 'TODOS' ||
+          asignacion.activo === (this.filtroEstado === 'ACTIVO');
+
+        return (
+          coincideDocente &&
+          coincideGrupo &&
+          coincideArea &&
+          coincideEstado
+        );
+      }
+    );
+}
+limpiarFiltros() {
+
+  this.filtroDocente = 'TODOS';
+
+  this.filtroGrupo = 'TODOS';
+
+  this.filtroArea = 'TODOS';
+
+  this.filtroEstado = 'TODOS';
+
+  this.aplicarFiltros();
+}
 }
