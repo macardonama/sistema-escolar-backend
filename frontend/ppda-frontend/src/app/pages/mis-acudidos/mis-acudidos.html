@@ -12,131 +12,81 @@
         Mis acudidos
       </h1>
 
-      <!-- Acudido -->
+      <div class="space-y-6">
 
-      <div class="bg-white rounded-3xl shadow p-8 mb-8">
+        @for (relacion of acudidos; track relacion.estudianteId) {
 
-        <div class="flex items-center justify-between">
+          <div class="bg-white rounded-3xl shadow p-8">
 
-          <div>
+            <div class="flex items-center justify-between gap-6">
 
-            <h2 class="text-3xl font-bold">
-              Estudiante Ejemplo
+              <div>
+
+                <h2 class="text-3xl font-bold text-gray-900">
+                  {{ relacion.estudiante?.nombre }}
+                </h2>
+
+                <p class="text-gray-500 mt-2">
+                  Grupo:
+                  {{ relacion.estudiante?.grupo?.nombre || 'Sin grupo' }}
+                  · Parentesco:
+                  {{ relacion.parentesco || 'No registrado' }}
+                </p>
+
+              </div>
+
+              <div class="flex items-center gap-4">
+
+                <span class="px-4 py-2 rounded-full bg-green-100 text-green-700 font-semibold">
+                  Activo
+                </span>
+
+              </div>
+
+              <div class="flex flex-col gap-3">
+
+                <button
+                  (click)="verPerfilAcudido(relacion)"
+                  class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+                >
+                  Ver perfil
+                </button>
+
+                <button
+                  (click)="verPerfilAcudido(relacion); seccionAcudido = 'asistencias'"
+                  class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+                >
+                  Ver asistencias
+                </button>
+
+                <button
+                  (click)="verPerfilAcudido(relacion); seccionAcudido = 'observaciones'"
+                  class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
+                >
+                  Ver observaciones
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        } @empty {
+
+          <div class="bg-white rounded-3xl shadow p-10 text-center">
+
+            <h2 class="text-2xl font-bold text-gray-800">
+              No tienes acudidos asociados
             </h2>
 
             <p class="text-gray-500 mt-2">
-              Grupo: 10-A · Parentesco: Madre
+              Aún no hay estudiantes vinculados a tu usuario acudiente.
             </p>
 
           </div>
 
-          <div class="flex items-center gap-4">
-
-            <span class="px-4 py-2 rounded-full bg-green-100 text-green-700 font-semibold">
-              Activo
-            </span>
-
-            <span class="px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-semibold">
-              Asistencia 86%
-            </span>
-
-          </div>
-
-          <div class="flex flex-col gap-3">
-
-            <button
-              class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
-            >
-              Ver asistencia
-            </button>
-
-            <button
-              class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl font-semibold"
-            >
-              Ver observaciones
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Indicadores -->
-
-      <div class="grid grid-cols-4 gap-6 mb-8">
-
-        <div class="bg-white rounded-3xl shadow p-8">
-
-          <p class="text-gray-500 font-semibold">
-            Última asistencia
-          </p>
-
-          <h2 class="text-4xl font-bold mt-4">
-            Presente
-          </h2>
-
-        </div>
-
-        <div class="bg-white rounded-3xl shadow p-8">
-
-          <p class="text-gray-500 font-semibold">
-            Ausencias
-          </p>
-
-          <h2 class="text-4xl font-bold mt-4">
-            3
-          </h2>
-
-        </div>
-
-        <div class="bg-white rounded-3xl shadow p-8">
-
-          <p class="text-gray-500 font-semibold">
-            Observaciones
-          </p>
-
-          <h2 class="text-4xl font-bold mt-4">
-            5
-          </h2>
-
-        </div>
-
-        <div class="bg-white rounded-3xl shadow p-8">
-
-          <p class="text-gray-500 font-semibold">
-            Reportes
-          </p>
-
-          <h2 class="text-4xl font-bold mt-4">
-            2
-          </h2>
-
-        </div>
-
-      </div>
-
-      <!-- Última observación -->
-
-      <div class="bg-white rounded-3xl shadow p-8">
-
-        <h2 class="text-3xl font-bold mb-6">
-          Última observación enviada
-        </h2>
-
-        <div class="flex items-center gap-4">
-
-          <span
-            class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-semibold"
-          >
-            Individual
-          </span>
-
-          <span class="text-lg text-gray-700">
-            El estudiante participó activamente y entregó la actividad completa.
-          </span>
-
-        </div>
+        }
 
       </div>
 

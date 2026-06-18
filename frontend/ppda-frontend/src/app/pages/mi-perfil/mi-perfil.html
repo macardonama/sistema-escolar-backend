@@ -32,12 +32,6 @@
         Perfil del estudiante
       </p>
 
-      <p class="mt-4 text-xl text-gray-600">
-  Grupo:
-  <span class="font-semibold text-gray-900">
-    {{ estudiante?.grupo?.nombre || 'Sin grupo' }}
-  </span>
-</p>
 
 @if (usuario?.activo) {
 
@@ -109,12 +103,12 @@
 
     <div class="bg-white rounded-3xl shadow p-6">
       <p class="text-gray-500">Documento</p>
-      <p class="text-2xl font-bold mt-2">Pendiente</p>
+      <p class="text-2xl font-bold mt-2">{{ estudiante?.documento }}</p>
     </div>
 
     <div class="bg-white rounded-3xl shadow p-6">
       <p class="text-gray-500">Grupo</p>
-      <p class="text-2xl font-bold mt-2">Pendiente</p>
+      <p class="text-2xl font-bold mt-2">{{ estudiante?.grupo?.nombre || 'Sin grupo' }}</p>
     </div>
 
     <div class="bg-white rounded-3xl shadow p-6">
@@ -151,7 +145,7 @@
 
 }
 
- @if (seccionMiPerfil === 'acudientes') {
+@if (seccionMiPerfil === 'acudientes') {
 
   <div class="bg-gray-50 rounded-2xl p-8">
 
@@ -171,7 +165,7 @@
               {{ acudiente.nombre }}
             </p>
 
-            <p class="text-gray-500">
+            <p class="text-gray-500 mt-2">
               Parentesco:
               {{
                 acudiente.estudiantes?.find(
@@ -181,12 +175,14 @@
               }}
             </p>
 
-            <p class="text-gray-500">
+            <p class="text-gray-500 mt-1">
+              Correo:
               {{ acudiente.correo }}
             </p>
 
-            <p class="text-gray-500">
-              Teléfono: {{ acudiente.telefono }}
+            <p class="text-gray-500 mt-1">
+              Teléfono:
+              {{ acudiente.telefono }}
             </p>
 
           </div>
@@ -197,9 +193,13 @@
 
     } @else {
 
-      <p class="text-gray-500 text-center">
-        Este estudiante no tiene acudientes asociados.
-      </p>
+      <div class="bg-white rounded-2xl p-6 text-center">
+
+        <p class="text-gray-500">
+          No tienes acudientes asociados.
+        </p>
+
+      </div>
 
     }
 

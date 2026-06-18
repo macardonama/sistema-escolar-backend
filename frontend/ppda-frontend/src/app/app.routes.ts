@@ -9,6 +9,7 @@ import { AcudientesComponent } from './pages/acudientes/acudientes';
 import { roleGuard } from './guards/role.guard';
 import { MiPerfilComponent } from './pages/mi-perfil/mi-perfil';
 import { MisAcudidosComponent } from './pages/mis-acudidos/mis-acudidos';
+import { AreasComponent } from './pages/areas/areas';
 
 export const routes: Routes = [
   {
@@ -87,6 +88,15 @@ export const routes: Routes = [
   canActivate: [roleGuard],
   data: {
     roles: ['ACUDIENTE']
+  }
+},
+
+{
+  path: 'areas',
+  component: AreasComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO']
   }
 },
 ];

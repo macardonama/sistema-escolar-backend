@@ -1,0 +1,201 @@
+<div class="flex min-h-screen bg-gray-100">
+
+  <app-sidebar />
+
+  <div class="flex-1">
+
+    <app-header />
+
+    <div class="p-10">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <h1 class="text-5xl font-bold text-blue-700">
+          Áreas
+        </h1>
+
+        <button
+          (click)="abrirModal()"
+          class="bg-blue-700 text-white px-8 py-4 rounded-2xl"
+        >
+          + Nueva área
+        </button>
+
+      </div>
+
+      <div class="bg-white rounded-3xl shadow overflow-hidden">
+
+        <div class="grid grid-cols-4 bg-blue-700 text-white font-bold p-5">
+
+          <div>Nombre</div>
+
+          <div>Descripción</div>
+
+          <div>Estado</div>
+
+          <div>Acciones</div>
+
+        </div>
+
+        @for (area of areas; track area.id) {
+
+         <div class="grid grid-cols-4 items-center p-5 border-b">
+
+            <div class="font-semibold text-gray-800">
+              {{ area.nombre }}
+            </div>
+
+            <div class="text-gray-600">
+              {{ area.descripcion || 'Sin descripción' }}
+            </div>
+
+            <div>
+
+              @if (area.activo) {
+
+                <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
+                  Activa
+                </span>
+
+              } @else {
+
+                <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">
+                  Inactiva
+                </span>
+
+              }
+
+            </div>
+
+            <div>
+            <button
+                (click)="abrirModalEditar(area)"
+                class="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl"
+            >
+                Editar
+            </button>
+            </div>
+
+          </div>
+
+        } @empty {
+
+          <div class="p-8 text-center text-gray-500">
+            No hay áreas registradas.
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+@if (mostrarModal) {
+
+  <div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-10 shadow-2xl">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <h2 class="text-4xl font-bold text-blue-700">
+          {{ modoEdicion ? 'Editar área' : 'Nueva área' }}
+        </h2>
+
+        <button
+          (click)="cerrarModal()"
+          class="text-4xl text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="mb-6">
+
+        <label class="block font-bold mb-2">
+          Nombre del área
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="nombre"
+          placeholder="Ej: Matemáticas"
+          class="w-full border rounded-2xl px-5 py-4"
+        />
+
+        @if (erroresArea.nombre) {
+
+          <p class="text-red-500 mt-2">
+            {{ erroresArea.nombre }}
+          </p>
+
+        }
+
+      </div>
+
+      <div class="mb-8">
+
+        <label class="block font-bold mb-2">
+          Descripción
+        </label>
+
+        <textarea
+          [(ngModel)]="descripcion"
+          placeholder="Ej: Pensamiento lógico, matemático y análisis"
+          class="w-full border rounded-2xl px-5 py-4 min-h-32"
+        ></textarea>
+
+        @if (erroresArea.descripcion) {
+
+          <p class="text-red-500 mt-2">
+            {{ erroresArea.descripcion }}
+          </p>
+
+        }
+
+      </div>
+
+      @if (modoEdicion) {
+
+  <div class="mb-8">
+
+    <label class="block font-bold mb-2">
+      Estado
+    </label>
+
+    <select
+      [(ngModel)]="activo"
+      class="w-full border rounded-2xl px-5 py-4"
+    >
+
+      <option [ngValue]="true">
+        Activa
+      </option>
+
+      <option [ngValue]="false">
+        Inactiva
+      </option>
+
+    </select>
+
+  </div>
+
+}
+
+      <button
+        (click)="modoEdicion ? actualizarArea() : crearArea()"
+        class="w-full bg-blue-700 text-white py-4 rounded-2xl font-semibold text-lg"
+      >
+        {{ modoEdicion ? 'Actualizar área' : 'Crear área' }}
+      </button>
+
+    </div>
+
+  </div>
+
+}

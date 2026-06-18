@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { HeaderComponent } from '../../shared/header/header';
 
-import { EstudiantesService } from '../../core/services/estudiantes';
 import { AcudientesService } from '../../core/services/acudientes';
 import { AsistenciasService } from '../../core/services/asistencias';
 import { ObservacionesService } from '../../core/services/observaciones';
@@ -32,7 +31,6 @@ export class MiPerfilComponent implements OnInit {
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
-  private estudiantesService = inject(EstudiantesService);
   private acudientesService = inject(AcudientesService);
   private asistenciasService = inject(AsistenciasService);
   private observacionesService = inject(ObservacionesService);
@@ -58,9 +56,21 @@ export class MiPerfilComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
 
-          this.usuario = response.usuario;
+        this.usuario = response.usuario;
 
-          this.cargarEstudianteActual();
+        this.estudiante =
+          response.usuario.estudiante;
+
+        if (this.estudiante) {
+
+          this.cargarAcudientes();
+
+          this.cargarAsistencias();
+
+          this.cargarObservaciones();
+        }
+
+        this.cdr.detectChanges();
         },
 
         error: (error) => {
@@ -69,72 +79,33 @@ export class MiPerfilComponent implements OnInit {
       });
   }
 
-  cargarEstudianteActual() {
+ cargarAcudientes() {
 
-    this.estudiantesService
-      .listarEstudiantes()
-      .subscribe({
-        next: (response: any) => {
+  this.acudientesService
+    .listarAcudientes()
+    .subscribe({
+      next: (response: any) => {
 
-          this.estudiantes =
-            response.estudiantes;
+        this.acudientes =
+          response.acudientes;
 
-          this.estudiante =
-            this.estudiantes.find(
-              estudiante =>
-                estudiante.usuarioId === this.usuario.id
-            );
+        this.acudientesEstudiante =
+          this.acudientes.filter(
+            acudiente =>
+              acudiente.estudiantes?.some(
+                (relacion: any) =>
+                  relacion.estudianteId === this.estudiante.id
+              )
+          );
 
-            console.log(
-  'ESTUDIANTE ACTUAL:',
-  this.estudiante
-);
+        this.cdr.detectChanges();
+      },
 
-          if (this.estudiante) {
-
-            this.cargarAcudientes();
-
-            this.cargarAsistencias();
-
-            this.cargarObservaciones();
-          }
-
-          this.cdr.detectChanges();
-        },
-
-        error: (error) => {
-          console.error(error);
-        }
-      });
-  }
-
-  cargarAcudientes() {
-
-    this.acudientesService
-      .listarAcudientes()
-      .subscribe({
-        next: (response: any) => {
-
-          this.acudientes =
-            response.acudientes;
-
-          this.acudientesEstudiante =
-            this.acudientes.filter(
-              acudiente =>
-                acudiente.estudiantes?.some(
-                  (relacion: any) =>
-                    relacion.estudianteId === this.estudiante.id
-                )
-            );
-
-          this.cdr.detectChanges();
-        },
-
-        error: (error) => {
-          console.error(error);
-        }
-      });
-  }
+      error: (error) => {
+        console.error(error);
+      }
+    });
+}
 
   cargarAsistencias() {
 
