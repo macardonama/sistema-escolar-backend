@@ -1,0 +1,229 @@
+<div class="flex min-h-screen bg-gray-100">
+
+  <app-sidebar />
+
+  <div class="flex-1">
+
+    <app-header />
+
+    <div class="p-10">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <h1 class="text-5xl font-bold text-blue-700">
+          Asignaciones académicas
+        </h1>
+
+        <button
+          (click)="abrirModal()"
+          class="bg-blue-700 text-white px-8 py-4 rounded-2xl font-semibold"
+        >
+          + Nueva asignación
+        </button>
+
+      </div>
+
+      <div class="bg-white rounded-3xl shadow overflow-hidden">
+
+        <div class="grid grid-cols-4 bg-blue-700 text-white font-bold p-5">
+
+          <div>Docente</div>
+
+          <div>Grupo</div>
+
+          <div>Área</div>
+
+          <div>Estado</div>
+
+        </div>
+
+        @for (asignacion of asignaciones; track asignacion.id) {
+
+          <div class="grid grid-cols-4 items-center p-5 border-b">
+
+            <div class="font-semibold text-gray-800">
+              {{ asignacion.docente?.usuario?.nombre || 'Sin docente' }}
+            </div>
+
+            <div class="text-gray-600">
+              {{ asignacion.grupo?.nombre || 'Sin grupo' }}
+            </div>
+
+            <div class="text-gray-600">
+              {{ asignacion.area?.nombre || 'Sin área' }}
+            </div>
+
+            <div>
+
+              @if (asignacion.activo) {
+
+                <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
+                  Activa
+                </span>
+
+              } @else {
+
+                <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">
+                  Inactiva
+                </span>
+
+              }
+
+            </div>
+
+          </div>
+
+        } @empty {
+
+          <div class="p-8 text-center text-gray-500">
+            No hay asignaciones académicas registradas.
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+@if (mostrarModal) {
+
+  <div class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-10 shadow-2xl">
+
+      <div class="flex justify-between items-center mb-8">
+
+        <h2 class="text-4xl font-bold text-blue-700">
+          Nueva asignación académica
+        </h2>
+
+        <button
+          (click)="cerrarModal()"
+          class="text-4xl text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="mb-6">
+
+        <label class="block font-bold mb-2">
+          Docente
+        </label>
+
+        <select
+          [(ngModel)]="docenteId"
+          class="w-full border rounded-2xl px-5 py-4"
+        >
+
+          <option [ngValue]="null">
+            Selecciona un docente
+          </option>
+
+          @for (docente of docentes; track docente.id) {
+
+            <option [ngValue]="docente.id">
+              {{ docente.usuario?.nombre }}
+            </option>
+
+          }
+
+        </select>
+
+        @if (erroresAsignacion.docenteId) {
+
+          <p class="text-red-500 mt-2">
+            {{ erroresAsignacion.docenteId }}
+          </p>
+
+        }
+
+      </div>
+
+      <div class="mb-6">
+
+        <label class="block font-bold mb-2">
+          Grupo
+        </label>
+
+        <select
+          [(ngModel)]="grupoId"
+          class="w-full border rounded-2xl px-5 py-4"
+        >
+
+          <option [ngValue]="null">
+            Selecciona un grupo
+          </option>
+
+          @for (grupo of grupos; track grupo.id) {
+
+            <option [ngValue]="grupo.id">
+              {{ grupo.nombre }} - {{ grupo.grado }}
+            </option>
+
+          }
+
+        </select>
+
+        @if (erroresAsignacion.grupoId) {
+
+          <p class="text-red-500 mt-2">
+            {{ erroresAsignacion.grupoId }}
+          </p>
+
+        }
+
+      </div>
+
+      <div class="mb-8">
+
+        <label class="block font-bold mb-2">
+          Área
+        </label>
+
+        <select
+          [(ngModel)]="areaId"
+          class="w-full border rounded-2xl px-5 py-4"
+        >
+
+          <option [ngValue]="null">
+            Selecciona un área
+          </option>
+
+          @for (area of areas; track area.id) {
+
+            <option [ngValue]="area.id">
+              {{ area.nombre }}
+            </option>
+
+          }
+
+        </select>
+
+        @if (erroresAsignacion.areaId) {
+
+          <p class="text-red-500 mt-2">
+            {{ erroresAsignacion.areaId }}
+          </p>
+
+        }
+
+      </div>
+
+      <button
+        (click)="crearAsignacion()"
+        class="w-full bg-blue-700 text-white py-4 rounded-2xl font-semibold text-lg"
+      >
+        Crear asignación
+      </button>
+
+    </div>
+
+  </div>
+
+}

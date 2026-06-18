@@ -10,6 +10,7 @@ import { roleGuard } from './guards/role.guard';
 import { MiPerfilComponent } from './pages/mi-perfil/mi-perfil';
 import { MisAcudidosComponent } from './pages/mis-acudidos/mis-acudidos';
 import { AreasComponent } from './pages/areas/areas';
+import { AsignacionesAcademicasComponent } from './pages/asignaciones-academicas/asignaciones-academicas';
 
 export const routes: Routes = [
   {
@@ -94,6 +95,15 @@ export const routes: Routes = [
 {
   path: 'areas',
   component: AreasComponent,
+  canActivate: [roleGuard],
+  data: {
+    roles: ['ADMINISTRATIVO']
+  }
+},
+
+{
+  path: 'asignaciones-academicas',
+  component: AsignacionesAcademicasComponent,
   canActivate: [roleGuard],
   data: {
     roles: ['ADMINISTRATIVO']
