@@ -63,12 +63,56 @@ const obtenerPerfil = async (usuarioId) => {
           id: true,
           documento: true,
           grupoId: true,
+          activo: true,
           grupo: {
             select: {
               id: true,
               nombre: true,
               grado: true,
               activo: true,
+            },
+          },
+          acudientes: {
+            select: {
+              parentesco: true,
+              acudiente: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  telefono: true,
+                  correo: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      acudiente: {
+        select: {
+          id: true,
+          nombre: true,
+          telefono: true,
+          correo: true,
+          estudiantes: {
+            select: {
+              parentesco: true,
+              estudiante: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  documento: true,
+                  grupoId: true,
+                  activo: true,
+                  grupo: {
+                    select: {
+                      id: true,
+                      nombre: true,
+                      grado: true,
+                      activo: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -80,12 +124,18 @@ const obtenerPerfil = async (usuarioId) => {
     throw new Error('Usuario no encontrado');
   }
 
-  if (usuario.rol !== 'ESTUDIANTE') {
-    const { estudiante, ...usuarioSinEstudiante } = usuario;
-    return usuarioSinEstudiante;
+  if (usuario.rol === 'ESTUDIANTE') {
+    const { acudiente, ...perfilEstudiante } = usuario;
+    return perfilEstudiante;
   }
 
-  return usuario;
+  if (usuario.rol === 'ACUDIENTE') {
+    const { estudiante, ...perfilAcudiente } = usuario;
+    return perfilAcudiente;
+  }
+
+  const { estudiante, acudiente, ...perfilGeneral } = usuario;
+  return perfilGeneral;
 };
 
 module.exports = {
