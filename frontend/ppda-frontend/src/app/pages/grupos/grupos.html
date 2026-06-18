@@ -428,126 +428,255 @@
       Asistencia del grupo
     </h3>
 
-    <button
-    (click)="mostrarFormularioAsistencia = !mostrarFormularioAsistencia"
-    class="mb-6 bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl transition"
-    >
-    + Registrar asistencia
-    </button>
+    <div class="bg-white rounded-2xl p-6 mb-6">
 
-    @if (mostrarFormularioAsistencia) {
-
-  <div class="bg-gray-50 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-6">
-
-    <div>
-
-      <label class="block mb-2 font-semibold">
-        Estudiante
+      <label class="block font-bold mb-2">
+        Asignación académica
       </label>
 
       <select
-        [(ngModel)]="estudianteAsistenciaId"
-        class="w-full p-4 rounded-xl border"
+        [(ngModel)]="asignacionAcademicaId"
+        (change)="prepararAsistenciaMasiva()"
+        class="w-full border rounded-2xl px-5 py-4"
       >
 
         <option [ngValue]="null">
-          Selecciona estudiante
+          Selecciona una asignación académica
         </option>
 
-        <option
-          *ngFor="let estudiante of estudiantes.filter(
-            e => e.grupoId === grupoSeleccionado.id
-          )"
-          [ngValue]="estudiante.id"
+        @for (asignacion of asignacionesGrupo; track asignacion.id) {
+
+          <option [ngValue]="asignacion.id">
+            {{ asignacion.area?.nombre }} -
+            {{ asignacion.docente?.usuario?.nombre }}
+          </option>
+
+        }
+
+      </select>
+
+      @if (asignacionesGrupo.length === 0) {
+
+        <p class="text-gray-500 mt-3">
+          Este grupo no tiene asignaciones académicas activas.
+        </p>
+
+      }
+
+    </div>
+
+    @if (!asignacionAcademicaId) {
+
+      <p class="text-gray-500 mb-6">
+        Selecciona una asignación académica para registrar asistencia.
+      </p>
+
+    }
+
+   @if (asignacionAcademicaId && mostrarRegistroMasivo) {
+
+      <div class="bg-gray-50 rounded-2xl p-6 mb-8">
+
+        <div class="flex justify-between items-center mb-6">
+
+          <div>
+
+            <h4 class="text-xl font-bold text-gray-800">
+              Registro masivo de asistencia
+            </h4>
+
+            <p class="text-gray-500 mt-1">
+              Marca el estado de asistencia de cada estudiante.
+            </p>
+
+          </div>
+
+          <div>
+
+            <label class="block font-semibold mb-2">
+              Fecha
+            </label>
+
+            <input
+              type="date"
+              [(ngModel)]="fechaAsistencia"
+              class="border rounded-xl px-4 py-3"
+            />
+
+          </div>
+
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border bg-white">
+
+          <table class="w-full">
+
+            <thead class="bg-gray-200 text-gray-700">
+
+              <tr>
+
+                <th class="p-4 text-left">
+                  Estudiante
+                </th>
+
+                <th class="p-4 text-left">
+                  Estado
+                </th>
+
+                <th class="p-4 text-left">
+                  Emoción
+                </th>
+
+                <th class="p-4 text-left">
+                  Observación
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @for (estudiante of estudiantesAsistenciaMasiva; track estudiante.id) {
+
+                <tr class="border-b">
+
+                  <td class="p-4 font-semibold">
+                    {{ estudiante.nombre }}
+                  </td>
+
+                  <td class="p-4">
+
+                    <select
+                      [(ngModel)]="estudiante.estadoAsistencia"
+                      class="w-full border rounded-xl px-4 py-3"
+                    >
+                      <option value="PRESENTE">PRESENTE</option>
+                      <option value="AUSENTE">AUSENTE</option>
+                      <option value="TARDE">TARDE</option>
+                      <option value="CITA">CITA</option>
+                      <option value="HOSPITALIZADO">HOSPITALIZADO</option>
+                      <option value="EN_CUARTO">EN CUARTO</option>
+                    </select>
+
+                  </td>
+
+                  <td class="p-4">
+
+                    @if (estudiante.estadoAsistencia === 'PRESENTE') {
+
+                      <select
+                        [(ngModel)]="estudiante.emocionAsistencia"
+                        class="w-full border rounded-xl px-4 py-3"
+                      >
+                        <option value="😊">😊</option>
+                        <option value="🙂">🙂</option>
+                        <option value="😐">😐</option>
+                        <option value="😔">😔</option>
+                      </select>
+
+                    } @else {
+
+                      <span class="text-gray-400">
+                        No aplica
+                      </span>
+
+                    }
+
+                  </td>
+
+                  <td class="p-4">
+
+                    <input
+                      type="text"
+                      [(ngModel)]="estudiante.observacionAsistencia"
+                      class="w-full border rounded-xl px-4 py-3"
+                      placeholder="Observación opcional"
+                    />
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        @if (errorAsistenciaMasiva) {
+
+          <p class="text-red-500 mt-4">
+            {{ errorAsistenciaMasiva }}
+          </p>
+
+        }
+
+        <button
+          (click)="guardarAsistenciaMasiva()"
+          class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl font-semibold transition"
         >
-          {{ estudiante.nombre }}
-        </option>
+          Guardar asistencia
+        </button>
 
-      </select>
+      </div>
 
-    </div>
+    }
 
-    <div>
+@if (mensajeAsistenciaMasiva) {
 
-      <label class="block mb-2 font-semibold">
-        Estado
-      </label>
+  <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
 
-      <select
-        [(ngModel)]="estadoAsistencia"
-        class="w-full p-4 rounded-xl border"
-      >
-        <option value="PRESENTE">PRESENTE</option>
+    <p class="text-green-700 font-semibold">
 
-        <option value="AUSENTE">AUSENTE</option>
+      {{ mensajeAsistenciaMasiva }}
 
-        <option value="TARDE">TARDE</option>
-
-        <option value="CITA">CITA</option>
-
-        <option value="HOSPITALIZADO">HOSPITALIZADO</option>
-
-        <option value="EN_CUARTO">EN CUARTO</option>
-      </select>
-
-    </div>
-
-   @if (estadoAsistencia === 'PRESENTE') {
-
-  <div>
-
-    <label class="block mb-2 font-semibold">
-      Emoción
-    </label>
-
-    <select
-      [(ngModel)]="emocionAsistencia"
-      class="w-full p-4 rounded-xl border"
-    >
-
-      <option value="😊">😊</option>
-
-      <option value="🙂">🙂</option>
-
-      <option value="😐">😐</option>
-
-      <option value="😔">😔</option>
-
-    </select>
+    </p>
 
   </div>
 
 }
 
-    <div>
+@if (mensajeInformativoAsistencia) {
 
-      <label class="block mb-2 font-semibold">
-        Observación
-      </label>
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
 
-      <input
-        [(ngModel)]="observacionAsistencia"
-        type="text"
-        class="w-full p-4 rounded-xl border"
-        placeholder="Observación opcional"
-      />
+    <p class="text-blue-700">
 
-    </div>
+      {{ mensajeInformativoAsistencia }}
 
-    <button
-      (click)="modoEdicionAsistencia ? actualizarAsistenciaGrupo() : registrarAsistenciaGrupo()"
-      class="col-span-2 bg-green-600 hover:bg-green-700 text-white p-4 rounded-xl font-semibold transition"
-    >
-      {{ modoEdicionAsistencia
-        ? 'Actualizar asistencia'
-        : 'Guardar asistencia'
-        }}
-    </button>
+    </p>
 
   </div>
 
 }
-    <div class="bg-gray-50 rounded-2xl overflow-hidden">
+
+@if (mensajeAsistenciaMasiva && !mostrarRegistroMasivo) {
+
+  <button
+
+    (click)="prepararAsistenciaMasiva()"
+
+    class="bg-blue-100 text-blue-700 px-5 py-3 rounded-xl font-semibold mb-6"
+
+  >
+
+    Registrar asistencia para otra materia
+
+  </button>
+
+}
+
+@if (asistenciasGrupo.length > 0) {
+
+  <h4 class="text-xl font-bold text-gray-800 mb-4">
+    Historial de asistencias registradas
+  </h4>
+
+  <div class="bg-gray-50 rounded-2xl overflow-hidden">
+
 
       <table class="w-full">
 
@@ -560,7 +689,7 @@
             </th>
 
             <th class="p-4 text-left">
-               Fecha
+              Fecha
             </th>
 
             <th class="p-4 text-left">
@@ -595,7 +724,7 @@
             </td>
 
             <td class="p-4">
-               {{ asistencia.fecha | date:'dd/MM/yyyy HH:mm' }}
+              {{ asistencia.fecha | date:'dd/MM/yyyy HH:mm' }}
             </td>
 
             <td class="p-4">
@@ -603,7 +732,7 @@
             </td>
 
             <td class="p-4">
-              {{ asistencia.emocion }}
+              {{ asistencia.emocion || '-' }}
             </td>
 
             <td class="p-4">
@@ -612,12 +741,12 @@
 
             <td class="p-4">
 
-            <button
+              <button
                 (click)="editarAsistencia(asistencia)"
                 class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg"
-            >
+              >
                 Editar
-            </button>
+              </button>
 
             </td>
 
@@ -627,7 +756,17 @@
 
       </table>
 
-    </div>
+        </div>
+
+} @else {
+
+  <div class="bg-gray-50 rounded-2xl p-8 text-center text-gray-500">
+    Aún no hay asistencias registradas para este grupo.
+  </div>
+
+}
+
+
 
   </div>
 

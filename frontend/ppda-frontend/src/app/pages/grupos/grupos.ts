@@ -15,6 +15,7 @@ import { AsistenciasService } from '../../core/services/asistencias';
 import { ObservacionesService } from '../../core/services/observaciones';
 import { ReportesService } from '../../core/services/reportes';
 import { AcudientesService } from '../../core/services/acudientes';
+import { AsignacionesAcademicasService } from '../../core/services/asignaciones-academicas';
 
 @Component({
   selector: 'app-grupos',
@@ -47,6 +48,9 @@ export class GruposComponent implements OnInit {
 
   private asistenciasService =
   inject(AsistenciasService);
+
+  private asignacionesAcademicasService =
+  inject(AsignacionesAcademicasService);
 
   asistenciasGrupo: any[] = [];
 
@@ -182,9 +186,13 @@ erroresGrupo = {
 
   seccionPerfilEstudiante = 'datos';
 
+  mostrarModalAsistenciaMasiva = false;
+
   acudientes: any[] = [];
 
   acudientesEstudiante: any[] = [];
+
+  mostrarRegistroMasivo = false;
 
   reporteObservacionesEstudiante: any = null;
   toggleSidebar() {
@@ -192,6 +200,21 @@ erroresGrupo = {
     this.mostrarSidebar =
       !this.mostrarSidebar;
   }
+
+  asignacionesGrupo: any[] = [];
+
+  asignacionAcademicaId: number | null = null;
+
+  fechaAsistencia =
+  new Date().toISOString().split('T')[0];
+
+  estudiantesAsistenciaMasiva: any[] = [];
+
+  mensajeInformativoAsistencia = '';
+
+  mensajeAsistenciaMasiva = '';
+
+  errorAsistenciaMasiva = '';
 
 ngOnInit(): void {
 
@@ -565,6 +588,8 @@ if (existeOtroGrupoConMismoNombre) {
 abrirDetalleGrupo(grupo: any) {
 
   this.grupoSeleccionado = grupo;
+
+  this.cargarAsignacionesGrupo();
 
   this.seccionGrupo = 'estudiantes';
 
@@ -1148,6 +1173,175 @@ cargarAcudientes() {
       },
       error: (error) => {
         console.error(error);
+      }
+    });
+}
+
+cargarAsignacionesGrupo() {
+
+  if (!this.grupoSeleccionado) return;
+
+  this.asignacionesAcademicasService
+    .listarAsignaciones({
+      grupoId: this.grupoSeleccionado.id,
+      activo: true
+    })
+    .subscribe({
+      next: (response: any) => {
+
+        this.asignacionesGrupo =
+          response.asignaciones;
+
+        this.cdr.detectChanges();
+      },
+
+      error: (error) => {
+        console.error(error);
+      }
+    });
+}
+
+abrirModalAsistenciaMasiva() {
+
+  if (!this.asignacionAcademicaId) {
+    return;
+  }
+
+  this.mostrarModalAsistenciaMasiva = true;
+}
+
+cerrarModalAsistenciaMasiva() {
+
+  this.mostrarModalAsistenciaMasiva = false;
+}
+
+prepararAsistenciaMasiva() {
+
+  this.mensajeAsistenciaMasiva = '';
+
+  const yaExisteAsistencia =
+  this.asistenciasGrupo.some(
+    (asistencia: any) =>
+      asistencia.asignacionAcademicaId === this.asignacionAcademicaId &&
+      asistencia.fecha?.split('T')[0] === this.fechaAsistencia
+  );
+
+if (yaExisteAsistencia) {
+
+  this.errorAsistenciaMasiva =
+    'Ya existe asistencia registrada para esta asignación en la fecha seleccionada';
+
+  this.mostrarRegistroMasivo = false;
+
+  return;
+}
+
+  this.errorAsistenciaMasiva = '';
+
+  this.mostrarRegistroMasivo = true;
+
+  if (!this.asignacionAcademicaId || !this.grupoSeleccionado) {
+
+    this.estudiantesAsistenciaMasiva = [];
+
+    return;
+  }
+
+  this.estudiantesAsistenciaMasiva =
+    this.estudiantes
+      .filter(
+        estudiante =>
+          estudiante.grupoId === this.grupoSeleccionado.id
+      )
+      .map(
+        estudiante => ({
+
+          ...estudiante,
+
+          estadoAsistencia: 'PRESENTE',
+
+          emocionAsistencia: '😊',
+
+          observacionAsistencia: ''
+        })
+      );
+}
+
+guardarAsistenciaMasiva() {
+
+  this.mensajeAsistenciaMasiva = '';
+
+  this.errorAsistenciaMasiva = '';
+
+  if (!this.asignacionAcademicaId) {
+
+    this.errorAsistenciaMasiva =
+      'Debe seleccionar una asignación académica';
+
+    return;
+  }
+
+  if (this.estudiantesAsistenciaMasiva.length === 0) {
+
+    this.errorAsistenciaMasiva =
+      'No hay estudiantes para registrar asistencia';
+
+    return;
+  }
+
+  const payload = {
+
+    asignacionAcademicaId:
+      this.asignacionAcademicaId,
+
+    fecha:
+      this.fechaAsistencia,
+
+    asistencias:
+      this.estudiantesAsistenciaMasiva.map(
+        estudiante => ({
+
+          estudianteId:
+            estudiante.id,
+
+          estado:
+            estudiante.estadoAsistencia,
+
+          emocion:
+            estudiante.estadoAsistencia === 'PRESENTE'
+              ? estudiante.emocionAsistencia
+              : null,
+
+          observacion:
+            estudiante.observacionAsistencia || null
+        })
+      )
+  };
+
+  this.asistenciasService
+    .registrarAsistenciaMasiva(payload)
+    .subscribe({
+next: (response: any) => {
+
+  this.mensajeAsistenciaMasiva =
+    `Asistencia guardada exitosamente. Creadas: ${response.resultado?.creadas || 0}, actualizadas: ${response.resultado?.actualizadas || 0}`;
+
+  this.mensajeInformativoAsistencia =
+    'Ya existe asistencia registrada para esta asignación en la fecha seleccionada. Para registrar otra asistencia, selecciona otra asignación académica o cambia la fecha.';
+
+  this.mostrarRegistroMasivo = false;
+
+  this.cargarAsistenciasGrupo();
+
+  this.cdr.detectChanges();
+},
+
+      error: (error) => {
+
+        this.errorAsistenciaMasiva =
+          error.error?.mensaje || 'No se pudo guardar la asistencia';
+
+        this.cdr.detectChanges();
       }
     });
 }

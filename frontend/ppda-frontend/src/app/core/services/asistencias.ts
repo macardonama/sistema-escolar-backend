@@ -84,4 +84,18 @@ actualizarAsistencia(
     }
   );
 }
+
+registrarAsistenciaMasiva(payload: any) {
+
+  return this.http.post(
+    `${this.apiUrl}/masiva`,
+    payload,
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 }

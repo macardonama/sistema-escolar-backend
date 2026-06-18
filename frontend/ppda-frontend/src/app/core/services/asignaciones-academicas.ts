@@ -11,18 +11,48 @@ export class AsignacionesAcademicasService {
   private apiUrl =
     'https://sistema-escolar-backend-wlfg.onrender.com/api/asignaciones-academicas';
 
-  listarAsignaciones() {
+listarAsignaciones(filtros?: {
+  docenteId?: number;
+  grupoId?: number;
+  areaId?: number;
+  activo?: boolean;
+}) {
 
-    return this.http.get(
-      this.apiUrl,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${localStorage.getItem('token')}`
-        }
-      }
-    );
+  let params = '';
+
+  if (filtros) {
+
+    const queryParams = new URLSearchParams();
+
+    if (filtros.docenteId) {
+      queryParams.append('docenteId', String(filtros.docenteId));
+    }
+
+    if (filtros.grupoId) {
+      queryParams.append('grupoId', String(filtros.grupoId));
+    }
+
+    if (filtros.areaId) {
+      queryParams.append('areaId', String(filtros.areaId));
+    }
+
+    if (filtros.activo !== undefined) {
+      queryParams.append('activo', String(filtros.activo));
+    }
+
+    params = `?${queryParams.toString()}`;
   }
+
+  return this.http.get(
+    `${this.apiUrl}${params}`,
+    {
+      headers: {
+        Authorization:
+          `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 
   crearAsignacion(
     docenteId: number,
