@@ -1,5 +1,27 @@
 const usuariosService = require('./usuarios.service');
 
+const cargarUsuariosDesdeArchivo = async (req, res) => {
+  try {
+    const resultado = await usuariosService.cargarUsuariosDesdeArchivo(req.file);
+
+    if (!resultado.ok) {
+      return res.status(400).json({
+        mensaje: 'La carga contiene errores. No se creó ningún registro.',
+        resultado,
+      });
+    }
+
+    res.status(201).json({
+      mensaje: 'Carga masiva realizada correctamente',
+      resultado,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 const crearUsuario = async (req, res) => {
   try {
     const usuario = await usuariosService.crearUsuario(req.body);
@@ -114,4 +136,5 @@ module.exports = {
   desactivarUsuario,
   activarUsuario,
   actualizarPasswordUsuario,
+  cargarUsuariosDesdeArchivo,
 };

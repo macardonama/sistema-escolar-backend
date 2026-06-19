@@ -90,6 +90,7 @@ model Acudiente {
   id        Int      @id @default(autoincrement())
   usuarioId Int?     @unique
   nombre    String
+  documento String?  @unique
   telefono  String?
   correo    String?
   creadoEn  DateTime @default(now())

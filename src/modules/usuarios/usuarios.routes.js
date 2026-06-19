@@ -2,8 +2,22 @@ const express = require('express');
 const usuariosController = require('./usuarios.controller');
 const { verificarToken } = require('../../middlewares/authMiddleware');
 const { verificarRol } = require('../../middlewares/roleMiddleware');
-
+const multer = require('multer');
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 const router = express.Router();
+
+router.post(
+  '/carga-masiva/archivo',
+  verificarToken,
+  verificarRol('ADMINISTRATIVO'),
+  upload.single('archivo'),
+  usuariosController.cargarUsuariosDesdeArchivo
+);
 
 router.post(
   '/',
