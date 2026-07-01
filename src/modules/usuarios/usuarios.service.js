@@ -334,13 +334,11 @@ const obtenerGrupoId = async (tx, datos) => {
 };
 
 const crearUsuarioBase = async (tx, datos) => {
-  const passwordEncriptada = await bcrypt.hash(datos.password, 10);
-
   return tx.usuario.create({
     data: {
       nombre: datos.nombre,
       correo: datos.correo,
-      password: passwordEncriptada,
+      password: datos.passwordEncriptada,
       rol: datos.rol,
     },
     select: {
@@ -369,6 +367,16 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
     };
   }
 
+  const filasConPasswordEncriptada = await Promise.all(
+  filasNormalizadas.map(async (fila) => ({
+    ...fila,
+    datos: {
+      ...fila.datos,
+      passwordEncriptada: await bcrypt.hash(fila.datos.password, 10),
+    },
+  }))
+);
+
   const resultado = await prisma.$transaction(async (tx) => {
     const usuariosCreados = [];
     const estudiantesPorDocumento = new Map();
@@ -378,7 +386,7 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
     const estudiantesBase = await tx.estudiante.findMany({
       where: {
         documento: {
-          in: filasNormalizadas
+          in: filasConPasswordEncriptada
             .filter((fila) => fila.datos.rol === 'ACUDIENTE')
             .map((fila) => fila.datos.documentoEstudiante)
             .filter(Boolean),
@@ -397,7 +405,7 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
     const acudientesBase = await tx.acudiente.findMany({
       where: {
         documento: {
-          in: filasNormalizadas
+          in: filasConPasswordEncriptada
             .filter((fila) => fila.datos.rol === 'ACUDIENTE')
             .map((fila) => fila.datos.documento)
             .filter(Boolean),
@@ -413,7 +421,7 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
       acudientesPorDocumento.set(acudiente.documento, acudiente);
     }
 
-    for (const fila of filasNormalizadas) {
+    for (const fila of filasConPasswordEncriptada) {
       const datos = fila.datos;
 
       if (datos.rol === 'ACUDIENTE') continue;
@@ -471,7 +479,7 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
       });
     }
 
-    for (const fila of filasNormalizadas) {
+    for (const fila of filasConPasswordEncriptada) {
       const datos = fila.datos;
 
       if (datos.rol !== 'ACUDIENTE') continue;
@@ -532,7 +540,12 @@ const cargarUsuariosDesdeArchivo = async (archivo) => {
       usuariosCreados,
       relacionesCreadas,
     };
-  });
+  },
+  {
+    maxWait: 10000,
+    timeout: 300000,
+  }
+);
 
   return {
     ok: true,
