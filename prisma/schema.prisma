@@ -18,6 +18,15 @@ enum RolUsuario {
   ESTUDIANTE
   ACUDIENTE
   PSICORIENTADOR
+  COORDINADOR
+}
+
+enum EstadoUpa {
+  BORRADOR
+  ENVIADA
+  EN_REVISION
+  REQUIERE_AJUSTES
+  APROBADA
 }
 
 enum EstadoAsistencia {
@@ -39,10 +48,11 @@ model Usuario {
   creadoEn      DateTime   @default(now())
   actualizadoEn DateTime   @updatedAt
 
-  docente        Docente?
-  administrativo Administrativo?
-  estudiante     Estudiante?
-  acudiente      Acudiente?
+  docente                Docente?
+  administrativo         Administrativo?
+  estudiante             Estudiante?
+  acudiente              Acudiente?
+  upaRetroalimentaciones UpaRetroalimentacion[]
 }
 
 model Docente {
@@ -58,6 +68,7 @@ model Docente {
   asistencias            Asistencia[]
   observaciones          Observacion[]
   asignacionesAcademicas AsignacionAcademica[]
+  upas                   Upa[]
 }
 
 model Administrativo {
@@ -126,6 +137,7 @@ model Grupo {
   asistencias            Asistencia[]
   observaciones          Observacion[]
   asignacionesAcademicas AsignacionAcademica[]
+  upas                   Upa[]
 }
 
 model Asistencia {
@@ -172,6 +184,7 @@ model Area {
   creadoEn               DateTime              @default(now())
   actualizadoEn          DateTime              @updatedAt
   asignacionesAcademicas AsignacionAcademica[]
+  upas                   Upa[]
 }
 
 model AsignacionAcademica {
@@ -188,45 +201,94 @@ model AsignacionAcademica {
   area    Area    @relation(fields: [areaId], references: [id])
 
   asistencias Asistencia[]
+  upas        Upa[]
 
   @@unique([docenteId, grupoId, areaId])
 }
 
 model DashboardNoticia {
-  id                    Int      @id @default(autoincrement())
-  titulo                String
-  descripcion           String
-  color                 String?  @default("azul")
-  orden                 Int      @default(0)
-  activo                Boolean  @default(true)
-  creadoPorUsuarioId    Int?
+  id                      Int      @id @default(autoincrement())
+  titulo                  String
+  descripcion             String
+  color                   String?  @default("azul")
+  orden                   Int      @default(0)
+  activo                  Boolean  @default(true)
+  creadoPorUsuarioId      Int?
   actualizadoPorUsuarioId Int?
-  creadoEn              DateTime @default(now())
-  actualizadoEn         DateTime @updatedAt
+  creadoEn                DateTime @default(now())
+  actualizadoEn           DateTime @updatedAt
 }
 
 model DashboardEvento {
-  id                    Int      @id @default(autoincrement())
-  titulo                String
-  fecha                 DateTime
-  color                 String?  @default("azul")
-  orden                 Int      @default(0)
-  activo                Boolean  @default(true)
-  creadoPorUsuarioId    Int?
+  id                      Int      @id @default(autoincrement())
+  titulo                  String
+  fecha                   DateTime
+  color                   String?  @default("azul")
+  orden                   Int      @default(0)
+  activo                  Boolean  @default(true)
+  creadoPorUsuarioId      Int?
   actualizadoPorUsuarioId Int?
-  creadoEn              DateTime @default(now())
-  actualizadoEn         DateTime @updatedAt
+  creadoEn                DateTime @default(now())
+  actualizadoEn           DateTime @updatedAt
 }
 
 model DashboardGaleria {
-  id                    Int      @id @default(autoincrement())
-  titulo                String
-  descripcion           String?
-  imagenUrl             String?
-  orden                 Int      @default(0)
-  activo                Boolean  @default(true)
-  creadoPorUsuarioId    Int?
+  id                      Int      @id @default(autoincrement())
+  titulo                  String
+  descripcion             String?
+  imagenUrl               String?
+  orden                   Int      @default(0)
+  activo                  Boolean  @default(true)
+  creadoPorUsuarioId      Int?
   actualizadoPorUsuarioId Int?
-  creadoEn              DateTime @default(now())
-  actualizadoEn         DateTime @updatedAt
+  creadoEn                DateTime @default(now())
+  actualizadoEn           DateTime @updatedAt
+}
+
+model Upa {
+  id                    Int       @id @default(autoincrement())
+  nombre                String
+  mision                String
+  salidaPedagogicaTexto String?
+  semanasNumero         Int
+  estado                EstadoUpa @default(BORRADOR)
+
+  docenteId             Int
+  grupoId               Int?
+  areaId                Int?
+  asignacionAcademicaId Int?
+
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  docente             Docente              @relation(fields: [docenteId], references: [id])
+  grupo               Grupo?               @relation(fields: [grupoId], references: [id])
+  area                Area?                @relation(fields: [areaId], references: [id])
+  asignacionAcademica AsignacionAcademica? @relation(fields: [asignacionAcademicaId], references: [id])
+
+  semanas             UpaSemana[]
+  retroalimentaciones UpaRetroalimentacion[]
+}
+
+model UpaSemana {
+  id           Int    @id @default(autoincrement())
+  upaId        Int
+  numeroSemana Int
+  detalle      String
+
+  upa Upa @relation(fields: [upaId], references: [id])
+
+  @@unique([upaId, numeroSemana])
+}
+
+model UpaRetroalimentacion {
+  id                   Int        @id @default(autoincrement())
+  upaId                Int
+  coordinadorUsuarioId Int
+  comentario           String
+  estadoSugerido       EstadoUpa?
+  creadoEn             DateTime   @default(now())
+
+  upa                Upa     @relation(fields: [upaId], references: [id])
+  coordinadorUsuario Usuario @relation(fields: [coordinadorUsuarioId], references: [id])
 }

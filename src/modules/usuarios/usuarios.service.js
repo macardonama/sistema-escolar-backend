@@ -8,6 +8,7 @@ const rolesValidos = [
   'ESTUDIANTE',
   'ACUDIENTE',
   'PSICORIENTADOR',
+  'COORDINADOR'
 ];
 
 const normalizarTexto = (valor) => {
