@@ -139,6 +139,128 @@ const listarRetroalimentaciones = async (req, res) => {
   }
 };
 
+const crearRetoUpa = async (req, res) => {
+  try {
+    const reto = await upasService.crearRetoUpa(req.params.id, req.body, req.usuario);
+
+    res.status(201).json({
+      mensaje: 'Reto creado correctamente',
+      reto,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const listarRetosUpa = async (req, res) => {
+  try {
+    const retos = await upasService.listarRetosUpa(req.params.id, req.usuario);
+
+    res.json({
+      retos,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const actualizarRetoUpa = async (req, res) => {
+  try {
+    const reto = await upasService.actualizarRetoUpa(
+      req.params.id,
+      req.params.retoId,
+      req.body,
+      req.usuario
+    );
+
+    res.json({
+      mensaje: 'Reto actualizado correctamente',
+      reto,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const eliminarRetoUpa = async (req, res) => {
+  try {
+    const reto = await upasService.eliminarRetoUpa(
+      req.params.id,
+      req.params.retoId,
+      req.usuario
+    );
+
+    res.json({
+      mensaje: 'Reto eliminado correctamente',
+      reto,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const registrarCumplimientoReto = async (req, res) => {
+  try {
+    const cumplimiento = await upasService.registrarCumplimientoReto(
+      req.params.id,
+      req.params.retoId,
+      req.params.estudianteId,
+      req.body,
+      req.usuario
+    );
+
+    res.json({
+      mensaje: 'Cumplimiento registrado correctamente',
+      cumplimiento,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const registrarCumplimientosMasivos = async (req, res) => {
+  try {
+    const cumplimientos = await upasService.registrarCumplimientosMasivos(
+      req.params.id,
+      req.body,
+      req.usuario
+    );
+
+    res.json({
+      mensaje: 'Cumplimientos registrados correctamente',
+      cumplimientos,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
+const obtenerAvanceUpa = async (req, res) => {
+  try {
+    const avance = await upasService.obtenerAvanceUpa(req.params.id, req.usuario);
+
+    res.json({
+      avance,
+    });
+  } catch (error) {
+    res.status(400).json({
+      mensaje: error.message,
+    });
+  }
+};
+
 module.exports = {
   crearUpa,
   listarUpas,
@@ -149,4 +271,11 @@ module.exports = {
   requerirAjustesUpa,
   crearRetroalimentacion,
   listarRetroalimentaciones,
+  crearRetoUpa,
+  listarRetosUpa,
+  actualizarRetoUpa,
+  eliminarRetoUpa,
+  registrarCumplimientoReto,
+  registrarCumplimientosMasivos,
+  obtenerAvanceUpa,
 };

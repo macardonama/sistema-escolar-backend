@@ -92,9 +92,10 @@ model Estudiante {
   usuario Usuario? @relation(fields: [usuarioId], references: [id])
   grupo   Grupo?   @relation(fields: [grupoId], references: [id])
 
-  acudientes    EstudianteAcudiente[]
-  asistencias   Asistencia[]
-  observaciones Observacion[]
+  acudientes           EstudianteAcudiente[]
+  asistencias          Asistencia[]
+  observaciones        Observacion[]
+  upaRetoCumplimientos UpaRetoCumplimiento[]
 }
 
 model Acudiente {
@@ -268,6 +269,7 @@ model Upa {
 
   semanas             UpaSemana[]
   retroalimentaciones UpaRetroalimentacion[]
+  retos               UpaReto[]
 }
 
 model UpaSemana {
@@ -291,4 +293,35 @@ model UpaRetroalimentacion {
 
   upa                Upa     @relation(fields: [upaId], references: [id])
   coordinadorUsuario Usuario @relation(fields: [coordinadorUsuarioId], references: [id])
+}
+
+model UpaReto {
+  id            Int      @id @default(autoincrement())
+  upaId         Int
+  numero        Int
+  nombre        String
+  descripcion   String?
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  upa           Upa                   @relation(fields: [upaId], references: [id])
+  cumplimientos UpaRetoCumplimiento[]
+
+  @@unique([upaId, numero])
+}
+
+model UpaRetoCumplimiento {
+  id                     Int      @id @default(autoincrement())
+  retoId                 Int
+  estudianteId           Int
+  cumple                 Boolean  @default(false)
+  observacion            String?
+  registradoPorUsuarioId Int?
+  creadoEn               DateTime @default(now())
+  actualizadoEn          DateTime @updatedAt
+
+  reto       UpaReto    @relation(fields: [retoId], references: [id])
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id])
+
+  @@unique([retoId, estudianteId])
 }

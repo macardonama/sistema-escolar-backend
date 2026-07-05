@@ -46,6 +46,11 @@ const incluirRelaciones = {
       numeroSemana: 'asc',
     },
   },
+  retos: {
+        orderBy: {
+    numero: 'asc',
+    },
+  },
   retroalimentaciones: {
     orderBy: {
       creadoEn: 'desc',
@@ -193,6 +198,33 @@ const crearUpa = async (datos, usuario) => {
 
   const nombre = datos.nombre?.trim();
   const mision = datos.mision?.trim();
+  const validarRetos = (retos = []) => {
+  if (!Array.isArray(retos)) {
+    throw new Error('retos debe ser un arreglo');
+  }
+
+  const numeros = new Set();
+
+  for (const reto of retos) {
+    const numero = Number(reto.numero);
+    const nombre = reto.nombre?.trim();
+
+    if (!numero) {
+      throw new Error('Cada reto debe tener número');
+    }
+
+    if (!nombre) {
+      throw new Error('Cada reto debe tener nombre');
+    }
+
+    if (numeros.has(numero)) {
+      throw new Error('No debe haber retos repetidos dentro de la misma UPA');
+    }
+
+    numeros.add(numero);
+  }
+};
+validarRetos(datos.retos || []);
 
   if (!nombre) {
     throw new Error('El nombre es obligatorio');
@@ -240,6 +272,13 @@ const crearUpa = async (datos, usuario) => {
           detalle: semana.detalle.trim(),
         })),
       },
+      retos: {
+      create: (datos.retos || []).map((reto) => ({
+      numero: Number(reto.numero),
+      nombre: reto.nombre.trim(),
+      descripcion: reto.descripcion?.trim() || null,
+    })),
+    },
     },
     include: incluirRelaciones,
   });
@@ -382,7 +421,7 @@ const actualizarUpa = async (id, datos, usuario) => {
           })),
         },
       },
-      include: incluirRelaciones,
+      include: incluirRelaciones, 
     });
   });
 
@@ -561,6 +600,416 @@ const listarRetroalimentaciones = async (id, usuario) => {
   return retroalimentaciones;
 };
 
+const validarUpaEditablePorDocente = async (upa, usuario) => {
+  if (usuario.rol !== 'DOCENTE') {
+    throw new Error('Solo DOCENTE puede modificar esta información');
+  }
+
+  const docente = await obtenerDocentePorUsuario(usuario.id);
+
+  if (Number(upa.docenteId) !== Number(docente.id)) {
+    throw new Error('No puedes modificar una UPA de otro docente');
+  }
+
+  if (!['BORRADOR', 'REQUIERE_AJUSTES'].includes(upa.estado)) {
+    throw new Error('Solo se puede modificar una UPA en BORRADOR o REQUIERE_AJUSTES');
+  }
+};
+
+const validarRetoPerteneceAUpa = async (upaId, retoId) => {
+  const reto = await prisma.upaReto.findUnique({
+    where: {
+      id: Number(retoId),
+    },
+  });
+
+  if (!reto) {
+    throw new Error('Reto no encontrado');
+  }
+
+  if (Number(reto.upaId) !== Number(upaId)) {
+    throw new Error('El reto no pertenece a esta UPA');
+  }
+
+  return reto;
+};
+
+const validarEstudiantePerteneceAGrupoUpa = async (upa, estudianteId) => {
+  const estudiante = await prisma.estudiante.findUnique({
+    where: {
+      id: Number(estudianteId),
+    },
+  });
+
+  if (!estudiante) {
+    throw new Error('Estudiante no encontrado');
+  }
+
+  if (upa.grupoId && Number(estudiante.grupoId) !== Number(upa.grupoId)) {
+    throw new Error('El estudiante no pertenece al grupo de la UPA');
+  }
+
+  return estudiante;
+};
+
+
+const crearRetoUpa = async (upaId, datos, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  await validarUpaEditablePorDocente(upa, usuario);
+
+  const numero = Number(datos.numero);
+  const nombre = datos.nombre?.trim();
+
+  if (!numero) {
+    throw new Error('El número del reto es obligatorio');
+  }
+
+  if (!nombre) {
+    throw new Error('El nombre del reto es obligatorio');
+  }
+
+  const reto = await prisma.upaReto.create({
+    data: {
+      upaId: Number(upaId),
+      numero,
+      nombre,
+      descripcion: datos.descripcion?.trim() || null,
+    },
+  });
+
+  return reto;
+};
+
+const listarRetosUpa = async (upaId, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  await verificarAccesoUpa(upa, usuario);
+
+  const retos = await prisma.upaReto.findMany({
+    where: {
+      upaId: Number(upaId),
+    },
+    orderBy: {
+      numero: 'asc',
+    },
+  });
+
+  return retos;
+};
+
+const actualizarRetoUpa = async (upaId, retoId, datos, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  await validarUpaEditablePorDocente(upa, usuario);
+
+  await validarRetoPerteneceAUpa(upaId, retoId);
+
+  const numero = Number(datos.numero);
+  const nombre = datos.nombre?.trim();
+
+  if (!numero) {
+    throw new Error('El número del reto es obligatorio');
+  }
+
+  if (!nombre) {
+    throw new Error('El nombre del reto es obligatorio');
+  }
+
+  const reto = await prisma.upaReto.update({
+    where: {
+      id: Number(retoId),
+    },
+    data: {
+      numero,
+      nombre,
+      descripcion: datos.descripcion?.trim() || null,
+    },
+  });
+
+  return reto;
+};
+
+const eliminarRetoUpa = async (upaId, retoId, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  await validarUpaEditablePorDocente(upa, usuario);
+
+  await validarRetoPerteneceAUpa(upaId, retoId);
+
+  await prisma.upaRetoCumplimiento.deleteMany({
+    where: {
+      retoId: Number(retoId),
+    },
+  });
+
+  const reto = await prisma.upaReto.delete({
+    where: {
+      id: Number(retoId),
+    },
+  });
+
+  return reto;
+};
+
+const registrarCumplimientoReto = async (upaId, retoId, estudianteId, datos, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  if (usuario.rol !== 'DOCENTE') {
+    throw new Error('Solo DOCENTE puede registrar cumplimiento');
+  }
+
+  const docente = await obtenerDocentePorUsuario(usuario.id);
+
+  if (Number(upa.docenteId) !== Number(docente.id)) {
+    throw new Error('No puedes registrar cumplimiento en una UPA de otro docente');
+  }
+
+  if (upa.estado === 'APROBADA') {
+    throw new Error('No se puede registrar cumplimiento en una UPA aprobada');
+  }
+
+  await validarRetoPerteneceAUpa(upaId, retoId);
+
+  await validarEstudiantePerteneceAGrupoUpa(upa, estudianteId);
+
+  if (typeof datos.cumple !== 'boolean') {
+    throw new Error('cumple debe ser true o false');
+  }
+
+  const cumplimiento = await prisma.upaRetoCumplimiento.upsert({
+    where: {
+      retoId_estudianteId: {
+        retoId: Number(retoId),
+        estudianteId: Number(estudianteId),
+      },
+    },
+    update: {
+      cumple: datos.cumple,
+      observacion: datos.observacion?.trim() || null,
+      registradoPorUsuarioId: Number(usuario.id),
+    },
+    create: {
+      retoId: Number(retoId),
+      estudianteId: Number(estudianteId),
+      cumple: datos.cumple,
+      observacion: datos.observacion?.trim() || null,
+      registradoPorUsuarioId: Number(usuario.id),
+    },
+  });
+
+  return cumplimiento;
+};
+
+const registrarCumplimientosMasivos = async (upaId, datos, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: { id: Number(upaId) },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  if (usuario.rol !== 'DOCENTE') {
+    throw new Error('Solo DOCENTE puede registrar cumplimientos');
+  }
+
+  const docente = await obtenerDocentePorUsuario(usuario.id);
+
+  if (Number(upa.docenteId) !== Number(docente.id)) {
+    throw new Error('No puedes registrar cumplimientos en una UPA de otro docente');
+  }
+
+  if (upa.estado === 'APROBADA') {
+    throw new Error('No se puede registrar cumplimiento en una UPA aprobada');
+  }
+
+  if (!Array.isArray(datos.cumplimientos) || datos.cumplimientos.length === 0) {
+    throw new Error('cumplimientos debe ser un arreglo no vacío');
+  }
+
+  const resultado = await prisma.$transaction(async (tx) => {
+    const registros = [];
+
+    for (const item of datos.cumplimientos) {
+      if (typeof item.cumple !== 'boolean') {
+        throw new Error('cumple debe ser true o false');
+      }
+
+      const reto = await tx.upaReto.findUnique({
+        where: {
+          id: Number(item.retoId),
+        },
+      });
+
+      if (!reto || Number(reto.upaId) !== Number(upaId)) {
+        throw new Error('Uno de los retos no pertenece a esta UPA');
+      }
+
+      const estudiante = await tx.estudiante.findUnique({
+        where: {
+          id: Number(item.estudianteId),
+        },
+      });
+
+      if (!estudiante) {
+        throw new Error('Uno de los estudiantes no existe');
+      }
+
+      if (upa.grupoId && Number(estudiante.grupoId) !== Number(upa.grupoId)) {
+        throw new Error('Uno de los estudiantes no pertenece al grupo de la UPA');
+      }
+
+      const cumplimiento = await tx.upaRetoCumplimiento.upsert({
+        where: {
+          retoId_estudianteId: {
+            retoId: Number(item.retoId),
+            estudianteId: Number(item.estudianteId),
+          },
+        },
+        update: {
+          cumple: item.cumple,
+          observacion: item.observacion?.trim() || null,
+          registradoPorUsuarioId: Number(usuario.id),
+        },
+        create: {
+          retoId: Number(item.retoId),
+          estudianteId: Number(item.estudianteId),
+          cumple: item.cumple,
+          observacion: item.observacion?.trim() || null,
+          registradoPorUsuarioId: Number(usuario.id),
+        },
+      });
+
+      registros.push(cumplimiento);
+    }
+
+    return registros;
+  });
+
+  return resultado;
+};
+
+const obtenerAvanceUpa = async (upaId, usuario) => {
+  const upa = await prisma.upa.findUnique({
+    where: {
+      id: Number(upaId),
+    },
+    include: {
+      grupo: {
+        include: {
+          estudiantes: {
+            where: {
+              activo: true,
+            },
+            orderBy: {
+              nombre: 'asc',
+            },
+          },
+        },
+      },
+      retos: {
+        orderBy: {
+          numero: 'asc',
+        },
+        include: {
+          cumplimientos: true,
+        },
+      },
+    },
+  });
+
+  if (!upa) {
+    throw new Error('UPA no encontrada');
+  }
+
+  await verificarAccesoUpa(upa, usuario);
+
+  const estudiantes = upa.grupo?.estudiantes || [];
+  const totalRetos = upa.retos.length;
+
+  const estudiantesConAvance = estudiantes.map((estudiante) => {
+    const cumplimientos = upa.retos.map((reto) => {
+      const cumplimiento = reto.cumplimientos.find(
+        (item) => Number(item.estudianteId) === Number(estudiante.id)
+      );
+
+      return {
+        retoId: reto.id,
+        numero: reto.numero,
+        nombre: reto.nombre,
+        cumple: cumplimiento?.cumple || false,
+        observacion: cumplimiento?.observacion || null,
+      };
+    });
+
+    const retosCumplidos = cumplimientos.filter((item) => item.cumple).length;
+
+    return {
+      id: estudiante.id,
+      nombre: estudiante.nombre,
+      documento: estudiante.documento,
+      totalRetos,
+      retosCumplidos,
+      porcentaje: totalRetos > 0 ? Math.round((retosCumplidos / totalRetos) * 100) : 0,
+      cumplimientos,
+    };
+  });
+
+  return {
+    upa: {
+      id: upa.id,
+      nombre: upa.nombre,
+      estado: upa.estado,
+      grupo: upa.grupo
+        ? {
+            id: upa.grupo.id,
+            nombre: upa.grupo.nombre,
+            grado: upa.grupo.grado,
+          }
+        : null,
+    },
+    retos: upa.retos.map((reto) => ({
+      id: reto.id,
+      numero: reto.numero,
+      nombre: reto.nombre,
+      descripcion: reto.descripcion,
+    })),
+    estudiantes: estudiantesConAvance,
+  };
+};
+
+
 module.exports = {
   crearUpa,
   listarUpas,
@@ -571,4 +1020,11 @@ module.exports = {
   requerirAjustesUpa,
   crearRetroalimentacion,
   listarRetroalimentaciones,
+    crearRetoUpa,
+    listarRetosUpa,
+    actualizarRetoUpa,
+    eliminarRetoUpa,
+    registrarCumplimientoReto,
+    registrarCumplimientosMasivos,
+    obtenerAvanceUpa,
 };
