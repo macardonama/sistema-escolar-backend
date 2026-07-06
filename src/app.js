@@ -14,6 +14,7 @@ const areasRoutes = require('./modules/areas/areas.routes');
 const asignacionesAcademicasRoutes = require('./modules/asignacionesAcademicas/asignacionesAcademicas.routes');
 const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const upasRoutes = require('./modules/upas/upas.routes');
+const planLectorRoutes = require('./modules/planLector/planLector.routes');
 
 
 const app = express();
@@ -40,5 +41,7 @@ app.use('/api/areas', areasRoutes);
 app.use('/api/asignaciones-academicas', asignacionesAcademicasRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/upas', upasRoutes);
+app.use('/api/plan-lector', planLectorRoutes);
+
 
 module.exports = app;

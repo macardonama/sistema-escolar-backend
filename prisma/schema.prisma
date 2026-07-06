@@ -38,6 +38,12 @@ enum EstadoAsistencia {
   EN_CUARTO
 }
 
+enum EstadoPlanLector {
+  LEYENDO
+  FINALIZADO
+  ABANDONADO
+}
+
 model Usuario {
   id            Int        @id @default(autoincrement())
   nombre        String
@@ -96,6 +102,7 @@ model Estudiante {
   asistencias          Asistencia[]
   observaciones        Observacion[]
   upaRetoCumplimientos UpaRetoCumplimiento[]
+  planLectorLibros     PlanLectorLibro[]
 }
 
 model Acudiente {
@@ -324,4 +331,24 @@ model UpaRetoCumplimiento {
   estudiante Estudiante @relation(fields: [estudianteId], references: [id])
 
   @@unique([retoId, estudianteId])
+}
+
+model PlanLectorLibro {
+  id                 Int  @id @default(autoincrement())
+  estudianteId       Int
+  creadoPorUsuarioId Int?
+
+  nombre   String
+  autor    String?
+  progreso Int              @default(0)
+  estado   EstadoPlanLector @default(LEYENDO)
+
+  fechaCreacion     DateTime  @default(now())
+  fechaFinalizacion DateTime?
+  resena            String?
+
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id])
 }
