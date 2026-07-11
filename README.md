@@ -1182,7 +1182,1466 @@ DIRECTIVO
 
 Body ejemplo:
 
+```json# Sistema Escolar Backend
+
+Backend para sistema escolar institucional construido con **Node.js**, **Express**, **PostgreSQL** y **Prisma**.
+
+El sistema permite gestionar usuarios, roles, grupos, docentes, estudiantes, acudientes, áreas académicas, asignaciones académicas, asistencia individual y masiva, observaciones, reportes básicos, carga masiva de usuarios y dashboard institucional editable.
+
+> Este README documenta la rama `main`. No incluye frontend, UPA, Plan lector, Proyectos, Coordinador ni funcionalidades creadas en ramas experimentales como `cambios-grandes`.
+
+---
+
+## Tecnologías principales
+
+- Node.js
+- Express
+- PostgreSQL
+- Prisma ORM
+- JWT para autenticación
+- Bcrypt para encriptación de contraseñas
+- Multer para recepción de archivos
+- XLSX para lectura de Excel/CSV
+- CORS
+- Dotenv
+- Neon PostgreSQL
+- Render
+
+---
+
+## Estructura general del proyecto
+
+```txt
+src/
+├── config/
+│   └── prisma.js
+├── middlewares/
+│   ├── authMiddleware.js
+│   └── roleMiddleware.js
+├── modules/
+│   ├── auth/
+│   ├── usuarios/
+│   ├── grupos/
+│   ├── docentes/
+│   ├── estudiantes/
+│   ├── acudientes/
+│   ├── areas/
+│   ├── asignacionesAcademicas/
+│   ├── asistencias/
+│   ├── observaciones/
+│   ├── reportes/
+│   └── dashboard/
+├── utils/
+│   └── permisos.js
+├── app.js
+└── server.js
+```
+
+---
+
+## Roles del sistema
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+PSICORIENTADOR
+```
+
+### ADMINISTRATIVO
+
+Rol con permisos globales de administración. Puede gestionar usuarios, carga masiva de usuarios, grupos, docentes, estudiantes, acudientes, relaciones, áreas, asignaciones académicas, asistencia, observaciones, reportes y dashboard institucional.
+
+### DIRECTIVO
+
+Rol institucional con permisos de gestión académica y consulta directiva.
+
+Puede, según las rutas habilitadas:
+
+- Ver grupos.
+- Editar grupos.
+- Activar y desactivar grupos.
+- Ver docentes.
+- Consultar estudiantes y acudientes.
+- Crear, listar, consultar y editar asignaciones académicas.
+- Consultar reportes y analítica básica.
+- Desasociar estudiantes de acudientes.
+- Gestionar el dashboard institucional.
+
+No existe un módulo `directivos`, porque `DIRECTIVO` funciona como rol con permisos sobre módulos funcionales.
+
+### DOCENTE
+
+Puede consultar grupos, estudiantes, acudientes, áreas y asignaciones académicas. También puede registrar asistencias, observaciones y consultar reportes, respetando las reglas de pertenencia configuradas.
+
+### ESTUDIANTE
+
+Puede consultar información propia en rutas habilitadas. No puede listar todos los estudiantes.
+
+Para facilitar el frontend, `GET /api/auth/perfil` devuelve el registro de estudiante asociado cuando el usuario autenticado tiene rol `ESTUDIANTE`.
+
+### ACUDIENTE
+
+Puede consultar información asociada a sus acudidos en rutas habilitadas, respetando reglas de pertenencia.
+
+### PSICORIENTADOR
+
+Rol base para futuro módulo de psicoorientación. Por ahora puede autenticarse y ser usado por el frontend para mostrar una sección correspondiente.
+
+---
+
+## Seguridad y permisos por pertenencia
+
+Además de validar el rol mediante JWT, el sistema valida pertenencia para proteger información sensible.
+
+Actualmente se valida que:
+
+- `ADMINISTRATIVO` pueda consultar toda la información.
+- `DIRECTIVO` pueda consultar información institucional y académica habilitada.
+- `DOCENTE` solo pueda consultar o gestionar información de grupos donde sea director o tenga asignación académica activa.
+- `ESTUDIANTE` solo pueda consultar su propio registro, asistencias, observaciones y reportes individuales.
+- `ACUDIENTE` solo pueda consultar información de estudiantes asociados como acudidos.
+
+Estas validaciones aplican especialmente en:
+
+```txt
+GET /api/estudiantes/:id
+GET /api/acudientes/:id
+GET /api/asistencias
+GET /api/asistencias/:id
+GET /api/reportes/asistencia/estudiante/:estudianteId
+GET /api/observaciones
+GET /api/observaciones/:id
+GET /api/reportes/observaciones/estudiante/:estudianteId
+```
+
+Para que las validaciones funcionen correctamente, los registros deben estar asociados así:
+
+```txt
+Usuario con rol ESTUDIANTE -> Estudiante.usuarioId
+Usuario con rol ACUDIENTE -> Acudiente.usuarioId
+Acudiente <-> Estudiante mediante EstudianteAcudiente
+Docente <-> Grupo mediante Grupo.directorDocenteId
+Docente <-> Grupo/Area mediante AsignacionAcademica
+```
+
+---
+
+## Variables de entorno
+
+Crear un archivo `.env` en la raíz del proyecto:
+
+```env
+DATABASE_URL="postgresql://postgres:TU_CONTRASEÑA@localhost:5432/sistema_escolar?schema=public"
+PORT=3000
+JWT_SECRET="clave_super_secreta_sistema_escolar"
+```
+
+Para Neon:
+
+```env
+DATABASE_URL="postgresql://usuario:password@host/database?sslmode=require"
+PORT=3000
+JWT_SECRET="clave_super_secreta_sistema_escolar"
+```
+
+> El archivo `.env` no debe subirse a GitHub. El repositorio debe mantener `.env.example` como referencia.
+
+---
+
+## Instalación
+
+```bash
+npm install
+```
+
+---
+
+## Ejecutar servidor en desarrollo
+
+```bash
+npm run dev
+```
+
+Servidor local:
+
+```txt
+http://localhost:3000
+```
+
+---
+
+## Despliegue
+
+URL pública:
+
+```txt
+https://sistema-escolar-backend-wlfg.onrender.com
+```
+
+Variables requeridas en Render:
+
+```txt
+DATABASE_URL
+JWT_SECRET
+PORT
+```
+
+Build Command:
+
+```bash
+npm install && npx prisma generate && npx prisma migrate deploy
+```
+
+Start Command:
+
+```bash
+npm start
+```
+
+Recomendación para `src/server.js`:
+
+```js
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor corriendo en http://${HOST}:${PORT}`);
+});
+```
+
+---
+
+## Usuario administrativo inicial
+
+```bash
+npm run seed
+```
+
+Usuario por defecto:
+
+```txt
+Correo: mateo@test.com
+Contraseña: 123456
+Rol: ADMINISTRATIVO
+```
+
+> En producción se recomienda cambiar la contraseña después del primer inicio de sesión.
+
+---
+
+## Prisma
+
+Generar Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Ejecutar migraciones en desarrollo:
+
+```bash
+npx prisma migrate dev --name nombre_de_la_migracion
+```
+
+Ejecutar migraciones en producción:
+
+```bash
+npx prisma migrate deploy
+```
+
+Ejecutar seed:
+
+```bash
+npm run seed
+```
+
+Abrir Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+---
+
+# Endpoints
+
+URL base:
+
+```txt
+Local:
+http://localhost:3000
+
+Render:
+https://sistema-escolar-backend-wlfg.onrender.com
+```
+
+Para rutas protegidas:
+
+```txt
+Authorization: Bearer TU_TOKEN
+```
+
+---
+
+## Auth
+
+### Iniciar sesión
+
+```http
+POST /api/auth/login
+```
+
+Body:
+
 ```json
+{
+  "correo": "mateo@test.com",
+  "password": "123456"
+}
+```
+
+### Consultar perfil autenticado
+
+```http
+GET /api/auth/perfil
+```
+
+Cuando el usuario autenticado tiene rol `ESTUDIANTE`, la respuesta incluye el registro de estudiante asociado.
+
+---
+
+## Usuarios
+
+### Crear usuario
+
+```http
+POST /api/usuarios
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "nombre": "Profesor Prueba",
+  "correo": "docente@test.com",
+  "password": "123456",
+  "rol": "DOCENTE"
+}
+```
+
+Roles válidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+PSICORIENTADOR
+```
+
+### Listar usuarios
+
+```http
+GET /api/usuarios
+```
+
+### Consultar usuario por ID
+
+```http
+GET /api/usuarios/:id
+```
+
+### Actualizar usuario
+
+```http
+PUT /api/usuarios/:id
+```
+
+Body:
+
+```json
+{
+  "nombre": "Nuevo Nombre",
+  "correo": "nuevo@test.com",
+  "rol": "DOCENTE",
+  "activo": true
+}
+```
+
+### Actualizar contraseña
+
+```http
+PATCH /api/usuarios/:id/password
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "password": "654321"
+}
+```
+
+### Desactivar usuario
+
+```http
+PATCH /api/usuarios/:id/desactivar
+```
+
+### Activar usuario
+
+```http
+PATCH /api/usuarios/:id/activar
+```
+
+### Carga masiva de usuarios desde archivo
+
+```http
+POST /api/usuarios/carga-masiva/archivo
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body en Postman:
+
+```txt
+multipart/form-data
+```
+
+Campo:
+
+```txt
+archivo
+```
+
+Formatos permitidos:
+
+```txt
+.xlsx
+.xls
+.csv
+```
+
+Columnas esperadas:
+
+```csv
+nombre,correo,password,rol,documento,telefono,grupoId,grupoNombre,cargo,documentoEstudiante,parentesco
+```
+
+Ejemplo:
+
+```csv
+nombre,correo,password,rol,documento,telefono,grupoId,grupoNombre,cargo,documentoEstudiante,parentesco
+Juan Pérez,juan@test.com,123456,ESTUDIANTE,1001,,1,6A,,,
+Ana Gómez,ana@test.com,123456,ACUDIENTE,9001,3001234567,,,,1001,MADRE
+Carlos Ruiz,carlos@test.com,123456,DOCENTE,2001,3111111111,,,,,
+```
+
+Funcionamiento:
+
+- Lee filas desde Excel o CSV.
+- Valida campos obligatorios.
+- Valida roles permitidos.
+- Valida correos duplicados en archivo y en base de datos.
+- Valida existencia de grupo para estudiantes.
+- Crea `Usuario`.
+- Crea perfil según rol:
+  - `ESTUDIANTE` -> `Estudiante`
+  - `DOCENTE` -> `Docente`
+  - `ACUDIENTE` -> `Acudiente`
+  - `ADMINISTRATIVO` -> `Administrativo`, si existe modelo/perfil correspondiente.
+  - `DIRECTIVO` y `PSICORIENTADOR` -> solo `Usuario`.
+- Relaciona acudientes con estudiantes usando `documentoEstudiante`.
+- Encripta contraseñas con bcrypt.
+- Si hay errores, no crea registros parciales.
+
+Respuesta exitosa:
+
+```json
+{
+  "mensaje": "Carga masiva realizada correctamente",
+  "resultado": {
+    "ok": true,
+    "total": 3,
+    "creados": 3,
+    "relacionesCreadas": 1,
+    "usuarios": [],
+    "errores": []
+  }
+}
+```
+
+Respuesta con errores:
+
+```json
+{
+  "mensaje": "La carga contiene errores. No se creó ningún registro.",
+  "resultado": {
+    "ok": false,
+    "total": 3,
+    "creados": 0,
+    "relacionesCreadas": 0,
+    "errores": [
+      {
+        "fila": 2,
+        "campo": "correo",
+        "error": "Ya existe un usuario con este correo"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Grupos
+
+### Crear grupo
+
+```http
+POST /api/grupos
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "nombre": "6-1",
+  "grado": "Sexto",
+  "directorDocenteId": 1
+}
+```
+
+### Listar grupos
+
+```http
+GET /api/grupos
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+```
+
+### Consultar grupo por ID
+
+```http
+GET /api/grupos/:id
+```
+
+### Actualizar grupo
+
+```http
+PUT /api/grupos/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+### Desactivar grupo
+
+```http
+PATCH /api/grupos/:id/desactivar
+```
+
+### Activar grupo
+
+```http
+PATCH /api/grupos/:id/activar
+```
+
+---
+
+## Docentes
+
+### Crear docente
+
+```http
+POST /api/docentes
+```
+
+Body:
+
+```json
+{
+  "usuarioId": 2,
+  "documento": "123456789",
+  "telefono": "3001234567"
+}
+```
+
+> El usuario asociado debe tener rol `DOCENTE`.
+
+### Listar docentes
+
+```http
+GET /api/docentes
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+```
+
+### Consultar docente por ID
+
+```http
+GET /api/docentes/:id
+```
+
+### Actualizar docente
+
+```http
+PUT /api/docentes/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+---
+
+## Estudiantes
+
+### Crear estudiante
+
+```http
+POST /api/estudiantes
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+```
+
+Body:
+
+```json
+{
+  "documento": "100000001",
+  "grupoId": 1,
+  "usuarioId": 3
+}
+```
+
+> El usuario asociado debe tener rol `ESTUDIANTE`. El nombre del estudiante se toma desde `Usuario.nombre`.
+
+### Listar estudiantes
+
+```http
+GET /api/estudiantes
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+```
+
+### Consultar estudiante por ID
+
+```http
+GET /api/estudiantes/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+```
+
+### Actualizar estudiante
+
+```http
+PUT /api/estudiantes/:id
+```
+
+### Desactivar estudiante
+
+```http
+PATCH /api/estudiantes/:id/desactivar
+```
+
+---
+
+## Acudientes
+
+### Crear acudiente
+
+```http
+POST /api/acudientes
+```
+
+Body:
+
+```json
+{
+  "telefono": "3005551234",
+  "usuarioId": 4
+}
+```
+
+> El usuario asociado debe tener rol `ACUDIENTE`. El nombre y correo se toman desde `Usuario`.
+
+### Listar acudientes
+
+```http
+GET /api/acudientes
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+```
+
+### Consultar acudiente por ID
+
+```http
+GET /api/acudientes/:id
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ACUDIENTE
+```
+
+### Actualizar acudiente
+
+```http
+PUT /api/acudientes/:id
+```
+
+### Asociar estudiante a acudiente
+
+```http
+POST /api/acudientes/asociar-estudiante
+```
+
+Body:
+
+```json
+{
+  "estudianteId": 1,
+  "acudienteId": 1,
+  "parentesco": "Madre"
+}
+```
+
+### Desasociar estudiante de acudiente
+
+```http
+DELETE /api/acudientes/desasociar-estudiante
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "estudianteId": 1,
+  "acudienteId": 1
+}
+```
+
+---
+
+## Áreas
+
+### Crear área
+
+```http
+POST /api/areas
+```
+
+Body:
+
+```json
+{
+  "nombre": "Matemáticas",
+  "descripcion": "Área de matemáticas"
+}
+```
+
+### Listar áreas
+
+```http
+GET /api/areas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+```
+
+Filtro opcional:
+
+```http
+GET /api/areas?activo=true
+```
+
+### Consultar área por ID
+
+```http
+GET /api/areas/:id
+```
+
+### Actualizar área
+
+```http
+PUT /api/areas/:id
+```
+
+---
+
+## Asignaciones académicas
+
+Permite relacionar un docente, un grupo y un área.
+
+### Crear asignación académica
+
+```http
+POST /api/asignaciones-academicas
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Body:
+
+```json
+{
+  "docenteId": 20,
+  "grupoId": 1,
+  "areaId": 1
+}
+```
+
+### Listar asignaciones académicas
+
+```http
+GET /api/asignaciones-academicas
+```
+
+Filtros:
+
+```txt
+docenteId
+grupoId
+areaId
+activo
+```
+
+### Consultar asignación académica por ID
+
+```http
+GET /api/asignaciones-academicas/:id
+```
+
+### Listar asignaciones por docente
+
+```http
+GET /api/asignaciones-academicas/docente/:docenteId
+```
+
+### Actualizar asignación académica
+
+```http
+PUT /api/asignaciones-academicas/:id
+```
+
+---
+
+## Asistencias
+
+### Registrar asistencia individual
+
+```http
+POST /api/asistencias
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Body:
+
+```json
+{
+  "estudianteId": 1,
+  "docenteId": 1,
+  "grupoId": 1,
+  "estado": "PRESENTE",
+  "emocion": "😊",
+  "observacion": "Participó activamente en clase"
+}
+```
+
+Estados válidos:
+
+```txt
+PRESENTE
+AUSENTE
+TARDE
+CITA
+HOSPITALIZADO
+EN_CUARTO
+```
+
+### Listar asistencias
+
+```http
+GET /api/asistencias
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+```
+
+Filtros:
+
+```txt
+estudianteId
+docenteId
+grupoId
+fechaInicio
+fechaFin
+```
+
+### Consultar asistencia por ID
+
+```http
+GET /api/asistencias/:id
+```
+
+### Actualizar asistencia
+
+```http
+PUT /api/asistencias/:id
+```
+
+### Registrar asistencias masivas
+
+```http
+POST /api/asistencias/masiva
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Body:
+
+```json
+{
+  "asignacionAcademicaId": 1,
+  "fecha": "2026-06-07",
+  "asistencias": [
+    {
+      "estudianteId": 8,
+      "estado": "PRESENTE",
+      "emocion": "😊",
+      "observacion": "Participó correctamente."
+    },
+    {
+      "estudianteId": 10,
+      "estado": "AUSENTE",
+      "emocion": null,
+      "observacion": "No asistió."
+    }
+  ]
+}
+```
+
+Funcionamiento:
+
+- Toma `docenteId` y `grupoId` desde la asignación académica.
+- Valida que la asignación exista y esté activa.
+- Valida estudiantes existentes y pertenecientes al grupo.
+- Crea o actualiza mediante `upsert`.
+- La emoción solo se guarda cuando el estado es `PRESENTE`.
+
+Llave lógica:
+
+```txt
+estudianteId + asignacionAcademicaId + fecha
+```
+
+---
+
+## Observaciones
+
+### Registrar observación
+
+```http
+POST /api/observaciones
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DOCENTE
+```
+
+Observación general:
+
+```json
+{
+  "docenteId": 1,
+  "grupoId": 1,
+  "tipo": "GENERAL",
+  "descripcion": "El grupo trabajó de forma ordenada durante la clase.",
+  "enviarAcudiente": false
+}
+```
+
+Observación individual:
+
+```json
+{
+  "estudianteId": 1,
+  "docenteId": 1,
+  "grupoId": 1,
+  "tipo": "INDIVIDUAL",
+  "descripcion": "El estudiante participó activamente.",
+  "enviarAcudiente": true
+}
+```
+
+### Listar observaciones
+
+```http
+GET /api/observaciones
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+```
+
+Filtros:
+
+```txt
+estudianteId
+docenteId
+grupoId
+fechaInicio
+fechaFin
+tipo
+```
+
+### Consultar observación por ID
+
+```http
+GET /api/observaciones/:id
+```
+
+### Actualizar observación
+
+```http
+PUT /api/observaciones/:id
+```
+
+---
+
+## Reportes básicos
+
+### Reporte de asistencia por grupo
+
+```http
+GET /api/reportes/asistencia/grupo/:grupoId
+```
+
+### Reporte de asistencia por estudiante
+
+```http
+GET /api/reportes/asistencia/estudiante/:estudianteId
+```
+
+### Reporte de observaciones por estudiante
+
+```http
+GET /api/reportes/observaciones/estudiante/:estudianteId
+```
+
+### Resumen de grupo
+
+```http
+GET /api/reportes/resumen/grupo/:grupoId
+```
+
+Roles de reportes:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+```
+
+Según el endpoint, aplican reglas de pertenencia para estudiante y acudiente.
+
+---
+
+## Dashboard institucional
+
+El dashboard permite administrar contenido de la pantalla principal institucional:
+
+```txt
+Noticias institucionales
+Próximos eventos
+Galería institucional
+```
+
+### Consultar dashboard público
+
+```http
+GET /api/dashboard
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+DOCENTE
+ESTUDIANTE
+ACUDIENTE
+PSICORIENTADOR
+```
+
+Devuelve elementos activos.
+
+### Consultar dashboard para edición
+
+```http
+GET /api/dashboard/gestion
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Devuelve elementos activos e inactivos.
+
+### Guardar dashboard completo
+
+```http
+PUT /api/dashboard
+```
+
+Roles permitidos:
+
+```txt
+ADMINISTRATIVO
+DIRECTIVO
+```
+
+Reglas:
+
+- Elementos con `id` se actualizan.
+- Elementos sin `id` se crean.
+- Elementos con `activo: false` se ocultan del dashboard público.
+- Los elementos no se eliminan físicamente.
+
+Body:
+
+```json
+{
+  "noticias": [
+    {
+      "titulo": "Semana cultural PPDA",
+      "descripcion": "Actividades académicas, artísticas y deportivas.",
+      "color": "azul",
+      "orden": 1,
+      "activo": true
+    }
+  ],
+  "eventos": [
+    {
+      "titulo": "Izada de bandera",
+      "fecha": "2026-05-27",
+      "color": "azul",
+      "orden": 1,
+      "activo": true
+    }
+  ],
+  "galeria": [
+    {
+      "titulo": "Actividad académica",
+      "descripcion": "Registro institucional.",
+      "imagenUrl": null,
+      "orden": 1,
+      "activo": true
+    }
+  ]
+}
+```
+
+### Noticias
+
+```http
+POST /api/dashboard/noticias
+PUT /api/dashboard/noticias/:id
+PATCH /api/dashboard/noticias/:id/activar
+PATCH /api/dashboard/noticias/:id/desactivar
+```
+
+### Eventos
+
+```http
+POST /api/dashboard/eventos
+PUT /api/dashboard/eventos/:id
+PATCH /api/dashboard/eventos/:id/activar
+PATCH /api/dashboard/eventos/:id/desactivar
+```
+
+### Galería
+
+```http
+POST /api/dashboard/galeria
+PUT /api/dashboard/galeria/:id
+PATCH /api/dashboard/galeria/:id/activar
+PATCH /api/dashboard/galeria/:id/desactivar
+```
+
+---
+
+## Flujo recomendado de prueba
+
+1. Ejecutar migraciones.
+2. Ejecutar seed inicial.
+3. Iniciar sesión como `ADMINISTRATIVO`.
+4. Crear usuarios por rol.
+5. Probar actualización de contraseña.
+6. Probar carga masiva de usuarios desde archivo.
+7. Crear docentes, estudiantes y acudientes.
+8. Crear grupo.
+9. Asociar director docente al grupo.
+10. Asociar estudiantes al grupo.
+11. Asociar acudientes con estudiantes.
+12. Crear áreas.
+13. Crear asignaciones académicas.
+14. Registrar asistencia individual.
+15. Registrar asistencias masivas.
+16. Registrar observación general.
+17. Registrar observación individual.
+18. Consultar reportes básicos.
+19. Probar permisos de `DIRECTIVO`.
+20. Probar dashboard público desde todos los roles.
+21. Probar edición del dashboard desde `ADMINISTRATIVO` y `DIRECTIVO`.
+22. Probar permisos por pertenencia con `ESTUDIANTE` y `ACUDIENTE`.
+23. Probar nuevamente usando la URL pública de Render.
+
+---
+
+## Colección de Postman
+
+La colección debe organizarse por módulos:
+
+```txt
+General
+Auth
+Usuarios
+Carga masiva usuarios
+Grupos
+Docentes
+Estudiantes
+Acudientes
+Áreas
+Asignaciones Académicas
+Asistencias
+Observaciones
+Reportes
+Dashboard
+```
+
+Variables recomendadas:
+
+```txt
+base_url
+token
+token_admin
+token_directivo
+token_docente
+token_estudiante
+token_acudiente
+token_psicorientador
+usuario_id
+docente_id
+grupo_id
+estudiante_id
+acudiente_id
+area_id
+asignacion_academica_id
+asistencia_id
+observacion_id
+dashboard_noticia_id
+dashboard_evento_id
+dashboard_galeria_id
+```
+
+---
+
+## Diagrama ERD
+
+El proyecto puede generar un diagrama entidad-relación desde Prisma usando `prisma-erd-generator`.
+
+```bash
+npx prisma generate
+```
+
+---
+
+## Comandos Git sugeridos
+
+```bash
+git status
+git add .
+git commit -m "Descripcion clara del cambio realizado"
+git push
+```
+
+Para fusionar una rama después de probar:
+
+```bash
+git checkout main
+git pull origin main
+git merge nombre-de-la-rama
+git push origin main
+```
+
+---
+
+## Pendientes actuales y recomendaciones
+
+### Alta prioridad
+
+- Mantener actualizada la colección de Postman con:
+  - `PATCH /api/usuarios/:id/password`
+  - `POST /api/usuarios/carga-masiva/archivo`
+  - `PATCH /api/grupos/:id/activar`
+  - `DELETE /api/acudientes/desasociar-estudiante`
+  - Endpoints del dashboard.
+- Verificar en Render que todas las migraciones aplicadas localmente estén desplegadas.
+- Confirmar que `src/server.js` escuche en `0.0.0.0` si Render presenta problemas de puerto.
+- Probar `GET /api/auth/perfil` con `ESTUDIANTE` y `ACUDIENTE`.
+
+### Permisos por revisar
+
+- Revisar si `DIRECTIVO` debe poder asociar estudiante-acudiente, ya que actualmente puede desasociar.
+- Revisar si `DIRECTIVO` debe tener más acciones de edición en estudiantes, acudientes o áreas.
+- Validar si `PSICORIENTADOR` necesita permisos de consulta mientras se define su módulo.
+
+### Mejoras futuras
+
+- Agregar endpoint de validación previa para carga masiva sin crear registros.
+- Agregar plantilla descargable para carga masiva.
+- Agregar historial de cargas masivas.
+- Definir soporte para actualización de usuarios existentes en carga masiva.
+- Crear flujo de recuperación de contraseña.
+- Crear módulo de psicoorientación.
+- Permitir observaciones realizadas por otros roles distintos a docente.
+- Definir almacenamiento real de imágenes de galería usando Cloudinary, S3, Firebase Storage u otro servicio.
+- Agregar pruebas automatizadas.
+- Crear documentación OpenAPI/Swagger.
+- Cambiar contraseña del usuario administrativo inicial después del primer acceso en producción.
+- Validar ambiente de producción después de cada despliegue.
+
+---
+
+## Estado general del backend
+
+El backend cuenta con módulos base para gestión institucional, autenticación, permisos por rol, permisos por pertenencia, usuarios, carga masiva de usuarios, grupos, docentes, estudiantes, acudientes, áreas, asignaciones académicas, asistencia individual y masiva, observaciones, reportes, roles directivo y psicorientador, y dashboard institucional editable.
+
+La prioridad técnica siguiente es estabilizar documentación, Postman, pruebas, permisos de `DIRECTIVO`, mejoras de carga masiva, recuperación de contraseña y módulo de psicoorientación.
+
 {
   "docenteId": 20,
   "grupoId": 1,
